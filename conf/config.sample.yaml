@@ -1,0 +1,54 @@
+---
+global:
+  kubetmp: "/run/user/1000/.kubeconfig"
+  separator: "@"
+  completion:
+    file: "/home/user/.kube/tkcompleted"
+    maxage: 86400
+  tabprefix: "☸"
+
+
+.workdir: &workdir
+  path: "/home/user/deploy"
+  subdir: "."
+  prefixns: ""
+
+.kubeconfig: &kubeconfig
+  path: "/home/user/.kube/konfigs"
+  file: "default"
+
+clusters:
+  - name: prod
+    kitty:
+      tabactivebg: "#db4b4b"
+      tabinactivefg: "#8e3533"
+    workdir:
+      <<: *workdir
+      subdir: "deploy_env_prod"
+    kubeconfig:
+      <<: *kubeconfig
+      file: "prod"
+
+  - name: dev
+    kitty:
+      tabactivebg: "#7dcfff"
+      tabinactivefg: "#5485a2"
+    workdir:
+      <<: *workdir
+      subdir: "deploy_env_dev"
+    kubeconfig:
+      <<: *kubeconfig
+      file: "dev"
+
+  - name: test
+    disabled: true
+    kitty:
+      tabactivebg: "#ff9e64"
+      tabinactivefg: "#a36743"
+    workdir:
+      <<: *workdir
+      subdir: deploy_env_test
+      prefixns: "test-"
+    kubeconfig:
+      <<: *kubeconfig
+      file: test

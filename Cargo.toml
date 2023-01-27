@@ -1,0 +1,21 @@
+[package]
+name = "ktk"
+version = "0.9.6"
+authors = ["gc@pc-scol.fr"]
+edition = "2021"
+description = "Kitty Tab for Kubeconfig"
+license = "MIT"
+readme = "README.adoc"
+categories = ["command-line-utilities"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.0.32", features = ["cargo", "string"] }
+config = "0.13.3"
+dirs = "4.0.0"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
+serde_yaml = "0.9.16"
+time = "0.3.17"
+skim = "0.10.2"

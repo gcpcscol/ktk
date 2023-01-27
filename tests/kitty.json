@@ -1,0 +1,293 @@
+[
+  {
+    "id": 1,
+    "is_active": false,
+    "is_focused": false,
+    "last_focused": false,
+    "platform_window_id": 20971534,
+    "tabs": [
+      {
+        "active_window_history": [
+          1
+        ],
+        "enabled_layouts": [
+          "tall",
+          "grid",
+          "splits",
+          "fat",
+          "vertical",
+          "stack"
+        ],
+        "id": 1,
+        "is_active_tab": false,
+        "is_focused": false,
+        "layout": "tall",
+        "layout_opts": {
+          "bias": 50,
+          "full_size": 1,
+          "mirrored": false
+        },
+        "layout_state": {
+          "biased_map": {},
+          "main_bias": [
+            0.5,
+            0.5
+          ],
+          "num_full_size_windows": 1
+        },
+        "title": "\u2026/rust/ktk/src",
+        "windows": [
+          {
+            "cmdline": [
+              "/usr/bin/zsh"
+            ],
+            "columns": 93,
+            "cwd": "/home/user/rust/ktk/src",
+            "env": {
+              "KITTY_WINDOW_ID": "1",
+              "WINDOWID": "20971534"
+            },
+            "foreground_processes": [
+              {
+                "cmdline": [
+                  "/usr/bin/zsh"
+                ],
+                "cwd": "/home/user/rust/ktk/src",
+                "pid": 15381
+              }
+            ],
+            "id": 1,
+            "is_active_window": true,
+            "is_focused": false,
+            "is_self": false,
+            "lines": 50,
+            "pid": 15381,
+            "title": "\u2026/rust/ktk/src"
+          }
+        ]
+      },
+      {
+        "active_window_history": [
+          6
+        ],
+        "enabled_layouts": [
+          "tall",
+          "grid",
+          "splits",
+          "fat",
+          "vertical",
+          "stack"
+        ],
+        "id": 6,
+        "is_active_tab": false,
+        "is_focused": false,
+        "layout": "tall",
+        "layout_opts": {
+          "bias": 50,
+          "full_size": 1,
+          "mirrored": false
+        },
+        "layout_state": {
+          "biased_map": {},
+          "main_bias": [
+            0.5,
+            0.5
+          ],
+          "num_full_size_windows": 1
+        },
+        "title": "test",
+        "windows": [
+          {
+            "cmdline": [
+              "/usr/bin/zsh"
+            ],
+            "columns": 93,
+            "cwd": "/home/user",
+            "env": {
+              "KITTY_WINDOW_ID": "6",
+              "WINDOWID": "20971534"
+            },
+            "foreground_processes": [
+              {
+                "cmdline": [
+                  "/usr/bin/zsh"
+                ],
+                "cwd": "/home/user",
+                "pid": 16964
+              }
+            ],
+            "id": 6,
+            "is_active_window": true,
+            "is_focused": false,
+            "is_self": false,
+            "lines": 50,
+            "pid": 16964,
+            "title": "user@localhost:~"
+          }
+        ]
+      },
+      {
+        "active_window_history": [
+          7
+        ],
+        "enabled_layouts": [
+          "tall",
+          "grid",
+          "splits",
+          "fat",
+          "vertical",
+          "stack"
+        ],
+        "id": 7,
+        "is_active_tab": true,
+        "is_focused": false,
+        "layout": "tall",
+        "layout_opts": {
+          "bias": 50,
+          "full_size": 1,
+          "mirrored": false
+        },
+        "layout_state": {
+          "biased_map": {},
+          "main_bias": [
+            0.5,
+            0.5
+          ],
+          "num_full_size_windows": 1
+        },
+        "title": "test2",
+        "windows": [
+          {
+            "cmdline": [
+              "/usr/bin/zsh"
+            ],
+            "columns": 46,
+            "cwd": "/home/user",
+            "env": {
+              "KITTY_WINDOW_ID": "7",
+              "WINDOWID": "20971534"
+            },
+            "foreground_processes": [
+              {
+                "cmdline": [
+                  "/usr/bin/zsh"
+                ],
+                "cwd": "/home/user",
+                "pid": 17155
+              }
+            ],
+            "id": 7,
+            "is_active_window": false,
+            "is_focused": false,
+            "is_self": false,
+            "lines": 50,
+            "pid": 17155,
+            "title": "user@localhost:~"
+          },
+          {
+            "cmdline": [
+              "/usr/bin/zsh"
+            ],
+            "columns": 47,
+            "cwd": "/home/user",
+            "env": {
+              "KITTY_WINDOW_ID": "8",
+              "WINDOWID": "20971534"
+            },
+            "foreground_processes": [
+              {
+                "cmdline": [
+                  "/usr/bin/zsh"
+                ],
+                "cwd": "/home/user",
+                "pid": 17344
+              }
+            ],
+            "id": 8,
+            "is_active_window": true,
+            "is_focused": false,
+            "is_self": false,
+            "lines": 50,
+            "pid": 17344,
+            "title": "user@localhost:~"
+          }
+        ]
+      }
+    ],
+    "wm_class": "kitty",
+    "wm_name": "kitty"
+  },
+  {
+    "id": 2,
+    "is_active": true,
+    "is_focused": true,
+    "last_focused": true,
+    "platform_window_id": 20971556,
+    "tabs": [
+      {
+        "active_window_history": [
+          2
+        ],
+        "enabled_layouts": [
+          "tall",
+          "grid",
+          "splits",
+          "fat",
+          "vertical",
+          "stack"
+        ],
+        "id": 2,
+        "is_active_tab": true,
+        "is_focused": true,
+        "layout": "tall",
+        "layout_opts": {
+          "bias": 50,
+          "full_size": 1,
+          "mirrored": false
+        },
+        "layout_state": {
+          "biased_map": {},
+          "main_bias": [
+            0.5,
+            0.5
+          ],
+          "num_full_size_windows": 1
+        },
+        "title": "kitty @ ls > kitty.json",
+        "windows": [
+          {
+            "cmdline": [
+              "/usr/bin/zsh"
+            ],
+            "columns": 93,
+            "cwd": "/home/user/rust/ktk/test",
+            "env": {
+              "KITTY_WINDOW_ID": "2",
+              "WINDOWID": "20971556"
+            },
+            "foreground_processes": [
+              {
+                "cmdline": [
+                  "kitty",
+                  "@",
+                  "ls"
+                ],
+                "cwd": "/home/user/rust/ktk/test",
+                "pid": 17555
+              }
+            ],
+            "id": 2,
+            "is_active_window": true,
+            "is_focused": true,
+            "is_self": true,
+            "lines": 50,
+            "pid": 15576,
+            "title": "kitty @ ls > kitty.json"
+          }
+        ]
+      }
+    ],
+    "wm_class": "kitty",
+    "wm_name": "kitty"
+  }
+]
