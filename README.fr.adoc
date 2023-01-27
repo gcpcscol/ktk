@@ -8,6 +8,12 @@ Enfin, au moment de l'ouverture de l'onglet de se placer directement dans un ré
 
 `ktk` peut gérer facilement des dizaines de clusters avec des milliers de namespaces.
 
+.Exemple d'utilisation des onglets kitty
+image::./images/ktk-1.png[]
+
+.Recherche dans `ktk`
+image::./images/ktk-search.png[]
+
 == Pré requis
 
 `ktk` a besoin pour fonctionner des outils `kubectl` et https://sw.kovidgoyal.net/kitty/[kitty].

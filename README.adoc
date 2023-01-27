@@ -8,6 +8,12 @@ When `ktk` open a new tab, you go directly to a working directory specific to th
 
 `ktk` can easily manage dozens of clusters with thousands of namespaces.
 
+.Example of the use of kitty tabs
+image::./images/ktk-1.png[]
+
+.Fuzzy search in `ktk`
+image::./images/ktk-search.png[]
+
 == Prerequisites
 
 `ktk` needs the `kubectl` and https://sw.kovidgoyal.net/kitty/[kitty] tools to work. And of course one or more Kubernetes clusters to manage.
