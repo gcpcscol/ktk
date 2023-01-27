@@ -158,9 +158,9 @@ impl Context {
         let mut iw = 0;
         while self.value[iw]["is_focused"].is_boolean() {
             if self.value[iw]["is_focused"].as_bool().expect("Error") {
-                while self.value[0]["tabs"][i]["title"].is_string() {
-                    if self.value[0]["tabs"][i]["title"].as_str().expect("Error") == title {
-                        return self.value[0]["tabs"][i]["id"].as_i64().or(None);
+                while self.value[iw]["tabs"][i]["title"].is_string() {
+                    if self.value[iw]["tabs"][i]["title"].as_str().expect("Error") == title {
+                        return self.value[iw]["tabs"][i]["id"].as_i64().or(None);
                     };
                     i += 1;
                 }
