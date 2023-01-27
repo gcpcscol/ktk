@@ -156,14 +156,12 @@ impl Context {
     pub fn id_tab_with_title(&self, title: &str) -> Option<i64> {
         let mut i = 0;
         let mut iw = 0;
-        while self.value[iw]["is_focused"].is_boolean() {
-            if self.value[iw]["is_focused"].as_bool().expect("Error") {
-                while self.value[iw]["tabs"][i]["title"].is_string() {
-                    if self.value[iw]["tabs"][i]["title"].as_str().expect("Error") == title {
-                        return self.value[iw]["tabs"][i]["id"].as_i64().or(None);
-                    };
-                    i += 1;
-                }
+        while self.value[iw].is_object() {
+            while self.value[iw]["tabs"][i]["title"].is_string() {
+                if self.value[iw]["tabs"][i]["title"].as_str().expect("Error") == title {
+                    return self.value[iw]["tabs"][i]["id"].as_i64().or(None);
+                };
+                i += 1;
             }
             iw += 1;
         }
@@ -295,6 +293,7 @@ mod tests {
     fn test_id_tab_with_title() {
         let k = new_from_file();
         assert_eq!(k.id_tab_with_title("error"), None);
+        assert_eq!(k.id_tab_with_title("test"), Some(6));
         assert_eq!(k.id_tab_with_title("test2"), Some(7));
     }
 
@@ -323,5 +322,11 @@ mod tests {
                 tab: 2
             })
         );
+    }
+
+    #[test]
+    fn test_tabs_id() {
+        let k = new_from_file();
+        assert_eq!(k.tabs_id(), vec![1, 6, 7]);
     }
 }
