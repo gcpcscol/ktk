@@ -131,7 +131,7 @@ impl Kubeconfig {
     // Write Kubeconfig struct in yaml file
     pub fn write(&self, path: String, filename: String) {
         fs::create_dir_all(path.clone()).expect("Could not create destination dir");
-        let kubefile = format!("{}/{}", path, filename);
+        let kubefile = format!("{path}/{filename}");
         let f = std::fs::OpenOptions::new()
             .write(true)
             .create(true)

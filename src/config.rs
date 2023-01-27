@@ -53,8 +53,8 @@ impl Context {
             let disabled = cfg["clusters"][i]["disabled"].as_bool().unwrap_or(false);
             let cl: Cluster = Cluster {
                 name,
-                kubeconfig: format!("{}/{}", kcpath, kcfile).to_string(),
-                workdir: format!("{}/{}", wdpath, wdsubdir).to_string(),
+                kubeconfig: format!("{kcpath}/{kcfile}").to_string(),
+                workdir: format!("{wdpath}/{wdsubdir}").to_string(),
                 prefixns,
                 disabled,
                 tabcolor: crate::kitty::Tabcolor {
@@ -115,7 +115,7 @@ impl Context {
         let parent = path.parent().unwrap();
         fs::create_dir_all(parent).expect("Could not create destination dir");
 
-        println!("update {}", file);
+        println!("update {file}");
         let str: String = data_compl
             .iter()
             .cloned()

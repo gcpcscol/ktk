@@ -9,7 +9,7 @@ use std::{env, io, process};
 
 fn config_file() -> String {
     let cfd = dirs::config_dir().unwrap().as_path().display().to_string();
-    format!("{}/ktk.yaml", cfd)
+    format!("{cfd}/ktk.yaml")
 }
 
 fn main() -> Result<(), io::Error> {
