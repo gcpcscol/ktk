@@ -63,107 +63,148 @@ impl Context {
     }
 
     pub fn platform_window_id(&self) -> Option<i64> {
-        let mut iw = 0;
-        while self.value[iw]["is_focused"].is_boolean() {
-            if self.value[iw]["is_focused"].as_bool().expect("Error") {
-                return self.value[iw]["platform_window_id"].as_i64().or(None);
+        let mut iow = 0;
+        while self.value[iow]["is_focused"].is_boolean() {
+            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+                return self.value[iow]["platform_window_id"].as_i64().or(None);
             }
-            iw += 1;
+            iow += 1;
         }
         None
     }
 
     #[allow(dead_code)]
     pub fn tabs_id(&self) -> Vec<i64> {
-        let mut it = 0;
         let mut vec = Vec::new();
-        while self.value[0]["tabs"][it]["id"].is_i64() {
-            vec.push(self.value[0]["tabs"][it]["id"].as_i64().expect("Error"));
-            it += 1;
+        let mut iow = 0;
+        while self.value[iow].is_object() {
+            let mut it = 0;
+            while self.value[iow]["tabs"][it].is_object() {
+                let idtab = self.value[iow]["tabs"][it]["id"].as_i64().expect("Error");
+                vec.push(idtab);
+                it += 1;
+            }
+            iow += 1;
         }
         vec
     }
 
     #[allow(dead_code)]
     pub fn id_path_of_focus_tab(&self) -> Option<IdPath> {
-        let mut it = 0;
-        let mut iw = 0;
-        while self.value[iw]["is_focused"].is_boolean() {
-            if self.value[iw]["is_focused"].as_bool().expect("Error") {
-                while self.value[iw]["tabs"][it]["is_focused"].is_boolean() {
-                    if self.value[iw]["tabs"][it]["is_focused"]
+        let mut iow = 0;
+        while self.value[iow]["is_focused"].is_boolean() {
+            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+                let mut it = 0;
+                while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
+                    if self.value[iow]["tabs"][it]["is_focused"]
                         .as_bool()
                         .expect("Error")
                     {
                         let idpath: IdPath = IdPath {
-                            win: self.value[iw]["platform_window_id"]
+                            win: self.value[iow]["platform_window_id"]
                                 .as_i64()
                                 .expect("Failed to find kitty platform window id"),
-                            tab: self.value[iw]["tabs"][it]["id"].as_i64().expect("Error"),
+                            tab: self.value[iow]["tabs"][it]["id"].as_i64().expect("Error"),
                         };
                         return Some(idpath);
                     };
                     it += 1;
                 }
             }
-            iw += 1;
+            iow += 1;
         }
         None
     }
 
     #[allow(dead_code)]
     pub fn id_of_focus_tab(&self) -> Option<i64> {
-        let mut it = 0;
-        let mut iw = 0;
-        while self.value[iw]["is_focused"].is_boolean() {
-            if self.value[iw]["is_focused"].as_bool().expect("Error") {
-                while self.value[iw]["tabs"][it]["is_focused"].is_boolean() {
-                    if self.value[iw]["tabs"][it]["is_focused"]
+        let mut iow = 0;
+        while self.value[iow]["is_focused"].is_boolean() {
+            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+                let mut it = 0;
+                while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
+                    if self.value[iow]["tabs"][it]["is_focused"]
                         .as_bool()
                         .expect("Error")
                     {
-                        return self.value[iw]["tabs"][it]["id"].as_i64().or(None);
+                        return self.value[iow]["tabs"][it]["id"].as_i64().or(None);
                     };
                     it += 1;
                 }
             }
-            iw += 1;
+            iow += 1;
         }
         None
     }
 
     #[allow(dead_code)]
     pub fn title_of_focus_tab(&self) -> Option<String> {
-        let mut it = 0;
-        let mut iw = 0;
-        while self.value[iw]["is_focused"].is_boolean() {
-            if self.value[iw]["is_focused"].as_bool().expect("Error") {
-                while self.value[iw]["tabs"][it]["is_focused"].is_boolean() {
-                    if self.value[iw]["tabs"][it]["is_focused"]
+        let mut iow = 0;
+        while self.value[iow]["is_focused"].is_boolean() {
+            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+                let mut it = 0;
+                while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
+                    if self.value[iow]["tabs"][it]["is_focused"]
                         .as_bool()
                         .expect("Error")
                     {
-                        return Some(self.value[iw]["tabs"][it]["title"].to_string());
+                        return Some(self.value[iow]["tabs"][it]["title"].to_string());
                     };
                     it += 1;
                 }
             }
-            iw += 1;
+            iow += 1;
         }
         None
     }
 
-    pub fn id_tab_with_title(&self, title: &str) -> Option<i64> {
-        let mut i = 0;
-        let mut iw = 0;
-        while self.value[iw].is_object() {
-            while self.value[iw]["tabs"][i]["title"].is_string() {
-                if self.value[iw]["tabs"][i]["title"].as_str().expect("Error") == title {
-                    return self.value[iw]["tabs"][i]["id"].as_i64().or(None);
+    #[allow(dead_code)]
+    pub fn id_window_with_tab_title(&self, title: &str) -> Option<i64> {
+        let mut iow = 0;
+        while self.value[iow].is_object() {
+            let mut it = 0;
+            while self.value[iow]["tabs"][it]["title"].is_string() {
+                if self.value[iow]["tabs"][it]["title"]
+                    .as_str()
+                    .expect("Error")
+                    == title
+                {
+                    let mut iw = 0;
+                    while self.value[iow]["tabs"][it]["windows"][iw].is_object() {
+                        if self.value[iow]["tabs"][it]["windows"][iw]["is_active_window"]
+                            .as_bool()
+                            .expect("Error")
+                        {
+                            return self.value[iow]["tabs"][it]["windows"][iw]["id"]
+                                .as_i64()
+                                .or(None);
+                        }
+                        iw += 1;
+                    }
                 };
-                i += 1;
+                it += 1;
             }
-            iw += 1;
+            iow += 1;
+        }
+        None
+    }
+
+    #[allow(dead_code)]
+    pub fn id_tab_with_title(&self, title: &str) -> Option<i64> {
+        let mut iow = 0;
+        while self.value[iow].is_object() {
+            let mut it = 0;
+            while self.value[iow]["tabs"][it]["title"].is_string() {
+                if self.value[iow]["tabs"][it]["title"]
+                    .as_str()
+                    .expect("Error")
+                    == title
+                {
+                    return self.value[iow]["tabs"][it]["id"].as_i64().or(None);
+                };
+                it += 1;
+            }
+            iow += 1;
         }
         None
     }
@@ -256,10 +297,22 @@ impl Context {
         )
     }
 
+    #[allow(dead_code)]
     pub fn focus_tab_id(&self, id: i64) {
         Command::new("kitty")
             .arg("@")
             .arg("focus-tab")
+            .arg("-m")
+            .arg(format!("id:{id}"))
+            .output()
+            .expect("Failed to load kitty");
+    }
+
+    #[allow(dead_code)]
+    pub fn focus_window_id(&self, id: i64) {
+        Command::new("kitty")
+            .arg("@")
+            .arg("focus-window")
             .arg("-m")
             .arg(format!("id:{id}"))
             .output()
@@ -298,12 +351,17 @@ mod tests {
     }
 
     #[test]
+    fn test_id_window_with_tab_title() {
+        let k = new_from_file();
+        assert_eq!(k.id_window_with_tab_title("error"), None);
+        assert_eq!(k.id_window_with_tab_title("test"), Some(6));
+        assert_eq!(k.id_window_with_tab_title("test3"), Some(2));
+    }
+
+    #[test]
     fn test_title_of_focus_tab() {
         let k = new_from_file();
-        assert_eq!(
-            k.title_of_focus_tab(),
-            Some("\"kitty @ ls > kitty.json\"".to_string())
-        );
+        assert_eq!(k.title_of_focus_tab(), Some("\"test3\"".to_string()));
     }
 
     #[test]
@@ -327,6 +385,6 @@ mod tests {
     #[test]
     fn test_tabs_id() {
         let k = new_from_file();
-        assert_eq!(k.tabs_id(), vec![1, 6, 7]);
+        assert_eq!(k.tabs_id(), vec![1, 6, 7, 2]);
     }
 }

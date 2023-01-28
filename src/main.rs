@@ -122,10 +122,11 @@ fn main() -> Result<(), io::Error> {
         // If it exists, go to tab,
         // otherwise create a new one.
         let tab = format!("{}{}", conf.tabprefix, &choice);
-        let idtab = k.id_tab_with_title(&tab);
-        if let Some(v) = idtab {
+        let v = k.id_window_with_tab_title(&tab);
+        if v.is_some() {
             println!("go to {choice}");
-            k.focus_tab_id(v)
+            let idwin = v.unwrap();
+            k.focus_window_id(idwin)
         } else {
             println!("launch {choice}");
             // Get namespace arg
