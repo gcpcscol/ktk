@@ -123,9 +123,8 @@ fn main() -> Result<(), io::Error> {
         // otherwise create a new one.
         let tab = format!("{}{}", conf.tabprefix, &choice);
         let v = k.id_window_with_tab_title(&tab);
-        if v.is_some() {
+        if let Some(idwin) = v {
             println!("go to {choice}");
-            let idwin = v.unwrap();
             k.focus_window_id(idwin)
         } else {
             println!("launch {choice}");
