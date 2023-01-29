@@ -29,43 +29,51 @@ impl Context {
         let value_string = |v: &serde_yaml::Value, def: &str| {
             v.as_str().map_or(def.to_string(), |s| s.to_string())
         };
-        let kubetmp = value_string(&cfg["global"]["kubetmp"], "");
+        let kubetmp = value_string(&cfg["global"]["kubetmp"], "/tmp/ktk");
         let separator = value_string(&cfg["global"]["separator"], "::");
         let completion_filename =
             value_string(&cfg["global"]["completion"]["file"], "/tmp/tkcomplete");
-        let maxage = 86400;
+        let maxage = cfg["global"]["completion"]["maxage"]
+            .as_u64()
+            .unwrap_or(3600);
         let tabprefix = value_string(&cfg["global"]["tabprefix"], "");
         let mut i = 0;
-        let mut clusts: Vec<Cluster> = Vec::new();
+        let mut clusters: Vec<Cluster> = Vec::new();
         let value_or_empty =
             |v: &serde_yaml::Value| v.as_str().map_or("".to_string(), |s| s.to_string());
 
         while cfg["clusters"][i].is_mapping() {
             let name = value_or_empty(&cfg["clusters"][i]["name"]);
-            let kcpath = value_string(&cfg["clusters"][i]["kubeconfig"]["path"], "");
-            let kcfile = value_string(&cfg["clusters"][i]["kubeconfig"]["file"], "");
-            let wdpath = value_string(&cfg["clusters"][i]["workdir"]["path"], "");
-            let wdsubdir = value_string(&cfg["clusters"][i]["workdir"]["subdir"], "");
+            let kubeconfig = format!(
+                "{}/{}",
+                value_string(&cfg["clusters"][i]["kubeconfig"]["path"], ""),
+                value_string(&cfg["clusters"][i]["kubeconfig"]["file"], "")
+            );
+            let workdir = format!(
+                "{}/{}",
+                value_string(&cfg["clusters"][i]["workdir"]["path"], ""),
+                value_string(&cfg["clusters"][i]["workdir"]["subdir"], "")
+            );
             let prefixns = value_string(&cfg["clusters"][i]["workdir"]["prefixns"], "");
-            let tabactivebg = value_string(&cfg["clusters"][i]["kitty"]["tabactivebg"], "NONE");
-            let tabinactivebg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivebg"], "NONE");
-            let tabactivefg = value_string(&cfg["clusters"][i]["kitty"]["tabactivefg"], "NONE");
-            let tabinactivefg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivefg"], "NONE");
+            let active_bg = value_string(&cfg["clusters"][i]["kitty"]["tabactivebg"], "NONE");
+            let inactive_bg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivebg"], "NONE");
+            let active_fg = value_string(&cfg["clusters"][i]["kitty"]["tabactivefg"], "NONE");
+            let inactive_fg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivefg"], "NONE");
             let disabled = cfg["clusters"][i]["disabled"].as_bool().unwrap_or(false);
             let cl: Cluster = Cluster {
                 name,
-                kubeconfig: format!("{kcpath}/{kcfile}").to_string(),
-                workdir: format!("{wdpath}/{wdsubdir}").to_string(),
+                kubeconfig,
+                workdir,
                 prefixns,
                 disabled,
                 tabcolor: crate::kitty::Tabcolor {
-                    active_bg: tabactivebg,
-                    inactive_bg: tabinactivebg,
-                    active_fg: tabactivefg,
-                    inactive_fg: tabinactivefg,
+                    active_bg,
+                    inactive_bg,
+                    active_fg,
+                    inactive_fg,
                 },
             };
-            clusts.push(cl);
+            clusters.push(cl);
             i += 1;
         }
         Context {
@@ -75,7 +83,7 @@ impl Context {
             config_filename: (file).to_path_buf(),
             maxage,
             tabprefix,
-            clusters: clusts,
+            clusters,
         }
     }
 
@@ -166,6 +174,7 @@ mod tests {
         let path = PathBuf::from("./conf/config.sample.yaml");
         let conf = Context::new(&path);
         assert_eq!(conf.kubetmp, "/run/user/1000/.kubeconfig");
+        assert_eq!(conf.maxage, 86400);
         assert_eq!(conf.clusters[0].name, "prod");
         assert_eq!(conf.clusters[1].workdir, "/home/user/deploy/deploy_env_dev");
         assert_eq!(conf.clusters[1].tabcolor.active_bg, "#7dcfff");
