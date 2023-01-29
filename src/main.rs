@@ -101,7 +101,9 @@ fn main() -> Result<(), io::Error> {
 
         // Check if the completion file must be update
         if matches.get_count("noscan") == 0
-            && (conf.completion_file_older_than_maxage() || matches.get_count("force") >= 1)
+            && (conf.completion_file_older_than_maxage()
+                || conf.completion_file_older_than_config()
+                || matches.get_count("force") >= 1)
         {
             conf.update_completion_file();
             if matches.get_one::<String>("namespace").is_none() {

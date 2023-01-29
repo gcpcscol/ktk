@@ -11,6 +11,7 @@ pub struct Context {
     pub kubetmp: String,
     pub separator: String,
     pub completion_filename: String,
+    pub config_filename: PathBuf,
     pub maxage: u64,
     pub tabprefix: String,
     pub clusters: Vec<Cluster>,
@@ -71,6 +72,7 @@ impl Context {
             kubetmp,
             separator,
             completion_filename,
+            config_filename: (file).to_path_buf(),
             maxage,
             tabprefix,
             clusters: clusts,
@@ -88,6 +90,24 @@ impl Context {
 
     pub fn cluster_by_name(&self, search_name: &str) -> Option<&Cluster> {
         self.clusters.iter().find(|&c| c.name == search_name)
+    }
+
+    #[allow(dead_code)]
+    pub fn completion_file_older_than_config(&self) -> bool {
+        let complete_file = self.completion_filename.clone();
+        let config_file = self.config_filename.clone();
+
+        let complete_time = match fs::metadata(complete_file).unwrap().modified() {
+            Ok(time) => time,
+            Err(error) => panic!("Problem opening the file: {error:?}"),
+        };
+
+        let config_time = match fs::metadata(config_file).unwrap().modified() {
+            Ok(time) => time,
+            Err(error) => panic!("Problem opening the file: {error:?}"),
+        };
+
+        complete_time < config_time
     }
 
     pub fn completion_file_older_than_maxage(&self) -> bool {
