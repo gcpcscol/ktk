@@ -1,7 +1,7 @@
 [package]
 name = "ktk"
 version = "0.10.0"
-authors = ["gc@pc-scol.fr"]
+authors = ["https://framagit.org/gauthier/ktk"]
 edition = "2021"
 description = "Kitty Tab for Kubeconfig"
 license = "MIT"
