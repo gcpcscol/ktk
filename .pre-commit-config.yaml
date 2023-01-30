@@ -1,0 +1,19 @@
+---
+repos:
+- repo: https://github.com/kioqq/pre-commit-rust
+  rev: v1.0
+  hooks:
+  - id: cargo-fmt
+  - id: cargo-test
+  - id: cargo-check
+  - id: cargo-clippy
+  # - id: cargo-audit
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-added-large-files
+  - id: check-symlinks
+  - id: check-merge-conflict
