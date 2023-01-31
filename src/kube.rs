@@ -1,12 +1,15 @@
 use skim::prelude::*;
-use std::process;
 use std::{
     io::Cursor,
+    io::Read,
     path::Path,
+    process,
     process::{Command, Stdio},
     sync::mpsc,
     thread,
+    time::Duration,
 };
+use wait_timeout::ChildExt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cluster {
@@ -47,17 +50,30 @@ pub fn ns_workdir(cluster: &Cluster, namespace: String, kubeconfig: String) -> S
 }
 
 pub fn get_namespaces(cl: Cluster, sep: String) -> Vec<String> {
-    let output = Command::new("kubectl")
+    let mut child = Command::new("kubectl")
         .arg(format!("--kubeconfig={}", cl.kubeconfig))
         .arg("get")
         .arg("namespace")
         .arg("-o=custom-columns=Name:.metadata.name")
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
         .unwrap();
 
-    let string = String::from_utf8(output.stdout).unwrap();
-    string
-        .lines()
+    let timeout = Duration::from_secs(5);
+    let _status_code = match child.wait_timeout(timeout).unwrap() {
+        Some(status) => status.code(),
+        None => {
+            // child hasn't exited yet
+            println!("Unable to contact the cluster {}", cl.name);
+            child.kill().unwrap();
+            child.wait().unwrap().code()
+        }
+    };
+    let mut s = String::new();
+    child.stdout.unwrap().read_to_string(&mut s).unwrap();
+
+    s.lines()
         .skip(1)
         .map(ToOwned::to_owned)
         .map(|x| format!("{}{}{}", x, sep, cl.name))
