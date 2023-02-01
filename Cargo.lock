@@ -670,7 +670,7 @@ dependencies = [
 
 [[package]]
 name = "ktk"
-version = "0.10.2"
+version = "0.10.3"
 dependencies = [
  "clap 4.1.4",
  "config",
