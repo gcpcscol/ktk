@@ -1,5 +1,7 @@
 = ktk - Kitty Tab pour Kubeconfig
 
+image::./images/kitty-tab-kube.svg[Logo Ktk,400,155,float="left"]
+
 `ktk` est un outil en ligne de commande permettant de gérer l'utilisation de multiple fichiers kubeconfig simultanément dans des onglets kitty.
 
 Il est possible de personnaliser le nom et la couleur des onglets pour chaque cluster, de rechercher rapidement dans des milliers de namespaces, grace à un cache.
