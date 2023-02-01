@@ -18,7 +18,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(file: &PathBuf) -> Context {
+    pub fn new(file: &PathBuf, notimeout: bool) -> Context {
         let f = std::fs::File::open(file).expect("Could not open file.");
         // Deserialize yaml file
         let mut cfg: Value = serde_yaml::from_reader(f).unwrap();
@@ -62,7 +62,7 @@ impl Context {
             let disabled = cfg["clusters"][i]["disabled"].as_bool().unwrap_or(false);
             let timeout = cfg["clusters"][i]["kubeconfig"]["timeout"]
                 .as_u64()
-                .unwrap_or(10);
+                .map_or(10, |t| if notimeout { 60 } else { t });
             let cl: Cluster = Cluster {
                 name,
                 kubeconfig,
@@ -176,7 +176,7 @@ mod tests {
     #[test]
     fn test_new() {
         let path = PathBuf::from("./conf/config.sample.yaml");
-        let conf = Context::new(&path);
+        let conf = Context::new(&path, false);
         assert_eq!(conf.kubetmp, "/run/user/1000/.kubeconfig");
         assert_eq!(conf.maxage, 86400);
         assert_eq!(conf.clusters[0].name, "prod");
@@ -187,14 +187,14 @@ mod tests {
     #[test]
     fn test_clusters_name() {
         let path = PathBuf::from("./conf/config.sample.yaml");
-        let conf = Context::new(&path);
+        let conf = Context::new(&path, false);
         assert_eq!(conf.clusters_name(), vec!["prod", "dev", "test"]);
     }
 
     #[test]
     fn test_cluster_by_name() {
         let path = PathBuf::from("./conf/config.sample.yaml");
-        let conf = Context::new(&path);
+        let conf = Context::new(&path, false);
         assert_eq!(conf.cluster_by_name("fault"), None);
         assert_ne!(conf.cluster_by_name("prod"), None);
         assert_eq!(

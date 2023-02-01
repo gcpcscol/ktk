@@ -38,6 +38,12 @@ fn main() -> Result<(), io::Error> {
         ))
         .arg(
             arg!(
+                -w --wait ... "disable timeout for namespaces search"
+            )
+            .conflicts_with_all(["evaldir", "noscan"]),
+        )
+        .arg(
+            arg!(
                 -n --noscan ... "Don't reconstruct cache of namespace"
             )
             .conflicts_with_all(["force"]),
@@ -61,7 +67,7 @@ fn main() -> Result<(), io::Error> {
         }
 
         // Load yaml config file
-        let conf = config::Context::new(config_path);
+        let conf = config::Context::new(config_path, matches.get_count("wait") >= 1);
         // Load kitty context (kitty @ls)
         let mut k: kitty::Context;
         if env::var("KITTY_WINDOW_ID").is_ok() {
