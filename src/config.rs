@@ -60,12 +60,16 @@ impl Context {
             let active_fg = value_string(&cfg["clusters"][i]["kitty"]["tabactivefg"], "NONE");
             let inactive_fg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivefg"], "NONE");
             let disabled = cfg["clusters"][i]["disabled"].as_bool().unwrap_or(false);
+            let timeout = cfg["clusters"][i]["kubeconfig"]["timeout"]
+                .as_u64()
+                .unwrap_or(10);
             let cl: Cluster = Cluster {
                 name,
                 kubeconfig,
                 workdir,
                 prefixns,
                 disabled,
+                timeout,
                 tabcolor: crate::kitty::Tabcolor {
                     active_bg,
                     inactive_bg,
@@ -201,6 +205,7 @@ mod tests {
                 workdir: "/home/user/deploy/deploy_env_prod".to_string(),
                 prefixns: "".to_string(),
                 disabled: false,
+                timeout: 5,
                 tabcolor: Tabcolor {
                     active_bg: "#db4b4b".to_string(),
                     inactive_bg: "NONE".to_string(),

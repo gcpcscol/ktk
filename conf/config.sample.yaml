@@ -16,6 +16,7 @@ global:
 .kubeconfig: &kubeconfig
   path: "/home/user/.kube/konfigs"
   file: "default"
+  timeout: 20
 
 clusters:
   - name: prod
@@ -28,6 +29,7 @@ clusters:
     kubeconfig:
       <<: *kubeconfig
       file: "prod"
+      timeout: 5
 
   - name: dev
     kitty:

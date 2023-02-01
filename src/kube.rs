@@ -13,12 +13,13 @@ use wait_timeout::ChildExt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cluster {
-    pub name: String,
-    pub kubeconfig: String,
-    pub workdir: String,
-    pub prefixns: String,
-    pub disabled: bool,
+    pub name: String,       // cluster name
+    pub kubeconfig: String, // kubeconfig path/file
+    pub workdir: String,    // cluster working directory
+    pub prefixns: String,   // prefix before the name of the working directory
+    pub disabled: bool,     // cluster is disabled
     pub tabcolor: crate::kitty::Tabcolor,
+    pub timeout: u64, // maximum time to retrieve the list of namespaces
 }
 
 #[allow(dead_code)]
@@ -60,7 +61,7 @@ pub fn get_namespaces(cl: Cluster, sep: String) -> Vec<String> {
         .spawn()
         .unwrap();
 
-    let timeout = Duration::from_secs(5);
+    let timeout = Duration::from_secs(cl.timeout);
     let _status_code = match child.wait_timeout(timeout).unwrap() {
         Some(status) => status.code(),
         None => {
@@ -83,10 +84,11 @@ pub fn get_namespaces(cl: Cluster, sep: String) -> Vec<String> {
 #[allow(unused_must_use)]
 pub fn get_all_ns(clusters: Vec<Cluster>) -> Vec<String> {
     let (tx, rx) = mpsc::channel();
-
+    let mut nbcl = 0;
     let mut result = Vec::new();
     for cl in clusters {
         if !cl.disabled {
+            nbcl += 1;
             let tx1 = tx.clone();
             thread::spawn(move || {
                 let ns = get_namespaces(cl, "::".to_string());
@@ -100,6 +102,7 @@ pub fn get_all_ns(clusters: Vec<Cluster>) -> Vec<String> {
     for rec in rx {
         result.extend(rec);
     }
+    println!("{} namespaces found in {} clusters", result.len(), nbcl);
     result
 }
 
@@ -166,6 +169,7 @@ mod tests {
             active_fg: "NONE".to_string(),
             inactive_fg: "NONE".to_string(),
         };
+        let timeout = 5;
         let cluster = Cluster {
             name,
             kubeconfig: cluster_kubeconfig,
@@ -173,6 +177,7 @@ mod tests {
             prefixns,
             disabled,
             tabcolor,
+            timeout,
         };
         let kubeconfig = "/tmp/path/kitty/42".to_string();
         let result = ns_workdir(&cluster, namespace, kubeconfig);
@@ -196,6 +201,7 @@ mod tests {
             active_fg: "NONE".to_string(),
             inactive_fg: "NONE".to_string(),
         };
+        let timeout = 5;
         let cluster = Cluster {
             name,
             kubeconfig: cluster_kubeconfig,
@@ -203,6 +209,7 @@ mod tests {
             prefixns,
             disabled,
             tabcolor,
+            timeout,
         };
         let kubeconfig = "/tmp/path/kitty/42".to_string();
         let result = ns_workdir(&cluster, namespace, kubeconfig);
@@ -226,6 +233,7 @@ mod tests {
             active_fg: "NONE".to_string(),
             inactive_fg: "NONE".to_string(),
         };
+        let timeout = 5;
         let cluster = Cluster {
             name,
             kubeconfig: cluster_kubeconfig,
@@ -233,6 +241,7 @@ mod tests {
             prefixns,
             disabled,
             tabcolor,
+            timeout,
         };
         let kubeconfig = "/tmp/path/kitty/42".to_string();
         let result = ns_workdir(&cluster, namespace, kubeconfig);
