@@ -98,9 +98,9 @@ pub struct UserUser {
 
 impl Kubeconfig {
     // Deserialize yaml file in struc Kubeconfig
-    pub fn new(path: String) -> Kubeconfig {
+    pub fn new(path: String) -> Result<Kubeconfig, serde_yaml::Error> {
         let f = std::fs::File::open(path).expect("Could not open file.");
-        serde_yaml::from_reader(f).unwrap()
+        serde_yaml::from_reader(f)
     }
 
     // Get namespace Context in Kubeconfig

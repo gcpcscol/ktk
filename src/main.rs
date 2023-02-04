@@ -92,7 +92,13 @@ fn main() -> Result<(), io::Error> {
                 if !Path::new(&kubeconfig).exists() {
                     process::exit(1)
                 }
-                let kcf = kubeconfig::Kubeconfig::new(kubeconfig.clone());
+                let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        println!("error parsing file {kubeconfig}: {e:?}");
+                        process::exit(6)
+                    }
+                };
                 let cluster_context = kcf.cluster_context();
                 let namespace_context = kcf.namespace_context();
                 let cluster = conf.cluster_by_name(&cluster_context).unwrap();
@@ -148,7 +154,14 @@ fn main() -> Result<(), io::Error> {
             let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id().unwrap());
             k.set_tab_color(cl.tabcolor.clone());
             println!();
-            let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
+            // let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
+            let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
+                Ok(v) => v,
+                Err(e) => {
+                    println!("error parsing file {}: {e:?}", cl.kubeconfig);
+                    process::exit(6)
+                }
+            };
             kcf.change_context(namespace.to_string());
             kcf.write(destkubeconfig, k.id_of_focus_tab().unwrap().to_string());
         }
