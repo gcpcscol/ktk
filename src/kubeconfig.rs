@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::fs::File;
 use std::os::unix::fs::PermissionsExt;
 
 #[derive(Default, PartialEq, Debug, Serialize, Deserialize)]
@@ -132,11 +133,7 @@ impl Kubeconfig {
     pub fn write(&self, path: String, filename: String) {
         fs::create_dir_all(path.clone()).expect("Could not create destination dir");
         let kubefile = format!("{path}/{filename}");
-        let f = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(kubefile.clone())
-            .expect("Couldn't open file");
+        let f = File::create(kubefile.clone()).expect("File should exist");
         serde_yaml::to_writer(f, &self).unwrap();
         fs::set_permissions(kubefile, fs::Permissions::from_mode(0o600)).unwrap();
     }

@@ -173,7 +173,8 @@ impl Context {
                     while self.value[iow]["tabs"][it]["windows"][iw].is_object() {
                         if self.value[iow]["tabs"][it]["windows"][iw]["is_active_window"]
                             .as_bool()
-                            .expect("Error")
+                            .or(None)
+                            .is_some()
                         {
                             return self.value[iow]["tabs"][it]["windows"][iw]["id"]
                                 .as_i64()
