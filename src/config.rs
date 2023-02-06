@@ -4,6 +4,7 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+use std::process;
 use std::time::SystemTime;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -111,12 +112,18 @@ impl Context {
 
         let complete_time = match fs::metadata(complete_file).unwrap().modified() {
             Ok(time) => time,
-            Err(error) => panic!("Problem opening the file: {error:?}"),
+            Err(error) => {
+                println!("Problem opening the file: {error:?}");
+                process::exit(10)
+            }
         };
 
         let config_time = match fs::metadata(config_file).unwrap().modified() {
             Ok(time) => time,
-            Err(error) => panic!("Problem opening the file: {error:?}"),
+            Err(error) => {
+                println!("Problem opening the file: {error:?}");
+                process::exit(10)
+            }
         };
 
         complete_time < config_time
