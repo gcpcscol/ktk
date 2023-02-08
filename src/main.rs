@@ -95,13 +95,21 @@ fn main() -> Result<(), io::Error> {
                 let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
                     Ok(v) => v,
                     Err(e) => {
-                        println!("error parsing file {kubeconfig}: {e:?}");
+                        println!("Error parsing file {kubeconfig}: {e:?}");
                         process::exit(6)
                     }
                 };
                 let cluster_context = kcf.cluster_context();
                 let namespace_context = kcf.namespace_context();
-                let cluster = conf.cluster_by_name(&cluster_context).unwrap();
+                let cluster = match conf.cluster_by_name(&cluster_context) {
+                    Some(v) => v,
+                    None => {
+                        println!(
+                            "Unable to find the cluster name {cluster_context} in the configuration file."
+                        );
+                        process::exit(7)
+                    }
+                };
 
                 println!(
                     "{}",
