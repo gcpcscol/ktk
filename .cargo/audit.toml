@@ -1,0 +1,4 @@
+[advisories]
+ignore = [
+    "RUSTSEC-2020-0071", # time 0.1, doesn't affect the API chrono use
+]

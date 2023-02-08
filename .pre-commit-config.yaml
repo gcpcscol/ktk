@@ -7,7 +7,7 @@ repos:
   - id: cargo-test
   - id: cargo-check
   - id: cargo-clippy
-  # - id: cargo-audit
+  - id: cargo-audit
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
   hooks:
