@@ -1,6 +1,7 @@
 use std::env;
 use std::fmt;
-use std::process::{Command, Stdio};
+use std::process;
+use std::process::{ChildStdout, Command, Stdio};
 
 #[derive(Debug)]
 pub struct Context {
@@ -39,33 +40,41 @@ impl Tabcolor {
     }
 }
 
+fn kittyls() -> ChildStdout {
+    match Command::new("kitty")
+        .args(["@", "ls"])
+        .stdout(Stdio::piped())
+        .spawn()
+    {
+        Ok(v) => match v.stdout {
+            Some(stdout) => stdout,
+            None => {
+                println!("Error");
+                process::exit(8)
+            }
+        },
+        Err(e) => {
+            println!("Error {e:?}");
+            process::exit(7)
+        }
+    }
+}
+
 impl Context {
     pub fn new() -> Context {
-        let kittyout = Command::new("kitty")
-            .args(["@", "ls"])
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Failed to load kitty");
-
         Context {
-            value: serde_json::from_reader(kittyout.stdout.expect("Failed")).unwrap(),
+            value: serde_json::from_reader(kittyls()).unwrap(),
         }
     }
 
     pub fn refresh(&mut self) {
-        let kittyout = Command::new("kitty")
-            .args(["@", "ls"])
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Failed to load kitty");
-
-        self.value = serde_json::from_reader(kittyout.stdout.expect("Failed")).unwrap();
+        self.value = serde_json::from_reader(kittyls()).unwrap();
     }
 
     pub fn platform_window_id(&self) -> Option<i64> {
         let mut iow = 0;
         while self.value[iow]["is_focused"].is_boolean() {
-            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+            if self.value[iow]["is_focused"].as_bool() == Some(true) {
                 return self.value[iow]["platform_window_id"].as_i64().or(None);
             }
             iow += 1;
@@ -80,8 +89,10 @@ impl Context {
         while self.value[iow].is_object() {
             let mut it = 0;
             while self.value[iow]["tabs"][it].is_object() {
-                let idtab = self.value[iow]["tabs"][it]["id"].as_i64().expect("Error");
-                vec.push(idtab);
+                match self.value[iow]["tabs"][it]["id"].as_i64() {
+                    Some(idtab) => vec.push(idtab),
+                    None => return vec,
+                }
                 it += 1;
             }
             iow += 1;
@@ -93,21 +104,17 @@ impl Context {
     pub fn id_path_of_focus_tab(&self) -> Option<IdPath> {
         let mut iow = 0;
         while self.value[iow]["is_focused"].is_boolean() {
-            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+            if self.value[iow]["is_focused"].as_bool() == Some(true) {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
-                    if self.value[iow]["tabs"][it]["is_focused"]
-                        .as_bool()
-                        .expect("Error")
-                    {
-                        let idpath: IdPath = IdPath {
+                    if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
+                        return Some(IdPath {
                             win: self.value[iow]["platform_window_id"]
                                 .as_i64()
                                 .expect("Failed to find kitty platform window id"),
                             tab: self.value[iow]["tabs"][it]["id"].as_i64().expect("Error"),
-                        };
-                        return Some(idpath);
-                    };
+                        });
+                    }
                     it += 1;
                 }
             }
@@ -120,15 +127,12 @@ impl Context {
     pub fn id_of_focus_tab(&self) -> Option<i64> {
         let mut iow = 0;
         while self.value[iow]["is_focused"].is_boolean() {
-            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+            if self.value[iow]["is_focused"].as_bool() == Some(true) {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
-                    if self.value[iow]["tabs"][it]["is_focused"]
-                        .as_bool()
-                        .expect("Error")
-                    {
+                    if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
                         return self.value[iow]["tabs"][it]["id"].as_i64().or(None);
-                    };
+                    }
                     it += 1;
                 }
             }
@@ -141,15 +145,12 @@ impl Context {
     pub fn title_of_focus_tab(&self) -> Option<String> {
         let mut iow = 0;
         while self.value[iow]["is_focused"].is_boolean() {
-            if self.value[iow]["is_focused"].as_bool().expect("Error") {
+            if self.value[iow]["is_focused"].as_bool() == Some(true) {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
-                    if self.value[iow]["tabs"][it]["is_focused"]
-                        .as_bool()
-                        .expect("Error")
-                    {
+                    if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
                         return Some(self.value[iow]["tabs"][it]["title"].to_string());
-                    };
+                    }
                     it += 1;
                 }
             }
@@ -164,11 +165,7 @@ impl Context {
         while self.value[iow].is_object() {
             let mut it = 0;
             while self.value[iow]["tabs"][it]["title"].is_string() {
-                if self.value[iow]["tabs"][it]["title"]
-                    .as_str()
-                    .expect("Error")
-                    == title
-                {
+                if self.value[iow]["tabs"][it]["title"].as_str() == Some(title) {
                     let mut iw = 0;
                     while self.value[iow]["tabs"][it]["windows"][iw].is_object() {
                         if self.value[iow]["tabs"][it]["windows"][iw]["is_active_window"]
@@ -182,7 +179,7 @@ impl Context {
                         }
                         iw += 1;
                     }
-                };
+                }
                 it += 1;
             }
             iow += 1;
@@ -196,11 +193,7 @@ impl Context {
         while self.value[iow].is_object() {
             let mut it = 0;
             while self.value[iow]["tabs"][it]["title"].is_string() {
-                if self.value[iow]["tabs"][it]["title"]
-                    .as_str()
-                    .expect("Error")
-                    == title
-                {
+                if self.value[iow]["tabs"][it]["title"].as_str() == Some(title) {
                     return self.value[iow]["tabs"][it]["id"].as_i64().or(None);
                 };
                 it += 1;
@@ -212,14 +205,15 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn tab_title_exist(&self, title: &str) -> bool {
-        let id = self.id_tab_with_title(title);
-        id.is_some()
+        self.id_tab_with_title(title).is_some()
     }
 
     #[allow(dead_code)]
     pub fn good_term(&self) -> bool {
-        let shell = env::var("TERM").unwrap_or_else(|_| "?".to_string());
-        shell == "xterm-kitty"
+        match env::var("TERM") {
+            Ok(term) => term == "xterm-kitty",
+            Err(_) => false,
+        }
     }
 
     #[allow(dead_code)]
