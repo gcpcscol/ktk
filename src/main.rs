@@ -8,8 +8,13 @@ use std::path::{Path, PathBuf};
 use std::{env, io, process};
 
 fn config_file() -> String {
-    let cfd = dirs::config_dir().unwrap().as_path().display().to_string();
-    format!("{cfd}/ktk.yaml")
+    match env::var("KTKONFIG") {
+        Ok(v) => v,
+        Err(_) => {
+            let cfd = dirs::config_dir().unwrap().as_path().display().to_string();
+            format!("{cfd}/ktk.yaml")
+        }
+    }
 }
 
 fn main() -> Result<(), io::Error> {
