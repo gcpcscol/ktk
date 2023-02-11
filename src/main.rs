@@ -149,8 +149,7 @@ fn main() -> Result<(), io::Error> {
         // If it exists, go to tab,
         // otherwise create a new one.
         let tab = format!("{}{}", conf.tabprefix, &choice);
-        let v = k.id_window_with_tab_title(&tab);
-        if let Some(idwin) = v {
+        if let Some(idwin) = k.id_window_with_tab_title(&tab) {
             println!("go to {choice}");
             k.focus_window_id(idwin)
         } else {

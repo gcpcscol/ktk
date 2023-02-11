@@ -186,7 +186,7 @@ impl Context {
                     while self.value[iow]["tabs"][it]["windows"][iw].is_object() {
                         if self.value[iow]["tabs"][it]["windows"][iw]["is_active_window"]
                             .as_bool()
-                            .or(None)
+                            .or(Some(false))
                             .is_some()
                         {
                             return self.value[iow]["tabs"][it]["windows"][iw]["id"]
@@ -240,7 +240,12 @@ impl Context {
             .arg(title)
             .output()
         {
-            Ok(_) => (),
+            Ok(o) => {
+                if o.stdout.is_empty() {
+                    println!("Error ");
+                    process::exit(9)
+                }
+            }
             Err(e) => {
                 println!("Error {e:?}");
                 process::exit(9)
@@ -312,7 +317,12 @@ impl Context {
             .arg(cmd)
             .output()
         {
-            Ok(_) => (),
+            Ok(o) => {
+                if o.stdout.is_empty() {
+                    println!("Error ");
+                    process::exit(12)
+                }
+            }
             Err(e) => {
                 println!("Error {e:?}");
                 process::exit(12)
@@ -341,7 +351,12 @@ impl Context {
             .arg(format!("id:{id}"))
             .output()
         {
-            Ok(_) => (),
+            Ok(o) => {
+                if !o.stdout.is_empty() {
+                    println!("Error ");
+                    process::exit(13)
+                }
+            }
             Err(e) => {
                 println!("Error {e:?}");
                 process::exit(13)
@@ -358,7 +373,12 @@ impl Context {
             .arg(format!("id:{id}"))
             .output()
         {
-            Ok(_) => (),
+            Ok(o) => {
+                if !o.stdout.is_empty() {
+                    println!("Error ");
+                    process::exit(14)
+                }
+            }
             Err(e) => {
                 println!("Error {e:?}");
                 process::exit(14)
