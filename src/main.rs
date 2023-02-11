@@ -3,7 +3,7 @@ mod kitty;
 mod kube;
 mod kubeconfig;
 
-use clap::{arg, command, crate_authors, crate_name, crate_version, value_parser};
+use clap::{arg, command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction};
 use std::path::{Path, PathBuf};
 use std::{env, io, process};
 
@@ -26,38 +26,65 @@ fn main() -> Result<(), io::Error> {
         ))
         .arg_required_else_help(true)
         .arg(arg!(
-        [namespace] "Namespace to operate on"
-        ))
-        .arg(
-            arg!(
-                -c --config <FILE> "Sets a custom config file"
-            )
-            .default_value(config_file())
-            .value_parser(value_parser!(PathBuf)),
+            [namespace] "Namespace to operate on"
         )
-        .arg(arg!(
-            -f --force ... "Force reconstruct cache of namespace"
-        ))
-        .arg(arg!(
-            -t --tab ... "Change namespace without change tab (like kubens)"
-        ))
-        .arg(
-            arg!(
-                -w --wait ... "disable timeout for namespaces search"
-            )
-            .conflicts_with_all(["evaldir", "noscan"]),
         )
         .arg(
-            arg!(
-                -n --noscan ... "Don't reconstruct cache of namespace"
-            )
-            .conflicts_with_all(["force"]),
+            Arg::new("config")
+                .short('c')
+                .long("config")
+                .value_name("FILE")
+                .action(ArgAction::Set)
+                .help("Sets a custom config file")
+                .long_help("Sets a custom config file.\nIt is possible to set the environment variable KTKONFIG to redefine the default config file.")
+                .default_value(config_file())
+                .value_parser(value_parser!(PathBuf)),
         )
         .arg(
-            arg!(
-            -e --evaldir ... "Show in stdout workdir of current cluster"
-                )
-            .conflicts_with_all(["namespace", "force", "tab"]),
+            Arg::new("force")
+                .short('f')
+                .long("force")
+                .action(clap::ArgAction::Count)
+                .help("Force reconstruct cache of namespace")
+                .long_help("This option will rebuild the whole cache by requesting all clusters. Each line will contain the namespace name, followed by the cluster name. If a cluster is not available the cache data for it will be deleted."),
+        )
+        .arg(
+            Arg::new("noscan")
+                .short('n')
+                .long("noscan")
+                .action(clap::ArgAction::Count)
+                .help("Force reconstruct cache of namespace")
+                .help("Don't reconstruct cache of namespace")
+                .long_help("The cache is automatically rebuilt every \"maxage\" seconds. This option allows you to ignore this value to avoid refreshing the cache.")
+                .conflicts_with_all(["force"]),
+        )
+        .arg(
+            Arg::new("wait")
+                .short('w')
+                .long("wait")
+                .action(clap::ArgAction::Count)
+                .help("Force reconstruct cache of namespace")
+                .help("disable timeout for namespaces search")
+                .long_help("Allows to override the timeout value of the config file in order to have temporarily a longer time for the cluster to respond.")
+                .conflicts_with_all(["evaldir", "noscan"]),
+        )
+        .arg(
+            Arg::new("tab")
+                .short('t')
+                .long("tab")
+                .action(clap::ArgAction::Count)
+                .help("Force reconstruct cache of namespace")
+                .help("Change namespace without change tab (like kubens)")
+        )
+        .arg(
+            Arg::new("evaldir")
+                .short('e')
+                .long("evaldir")
+                .action(clap::ArgAction::Count)
+                .help("Force reconstruct cache of namespace")
+                .help("Show in stdout workdir of current cluster")
+                .long_help("Show in stdout workdir of current cluster.\nUse in your .bahsrc or .zshrc file to automatically load the correct kubeconfig file.")
+                .conflicts_with_all(["namespace", "force", "tab"]),
         )
         .version(crate_version!())
         .long_version(format!("{}\n{}", crate_version!(), crate_authors!()))
