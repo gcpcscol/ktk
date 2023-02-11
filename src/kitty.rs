@@ -63,12 +63,24 @@ fn kittyls() -> ChildStdout {
 impl Context {
     pub fn new() -> Context {
         Context {
-            value: serde_json::from_reader(kittyls()).unwrap(),
+            value: match serde_json::from_reader(kittyls()) {
+                Ok(v) => v,
+                Err(e) => {
+                    println!("Error {e:?}");
+                    process::exit(7)
+                }
+            },
         }
     }
 
     pub fn refresh(&mut self) {
-        self.value = serde_json::from_reader(kittyls()).unwrap();
+        self.value = match serde_json::from_reader(kittyls()) {
+            Ok(v) => v,
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(7)
+            }
+        }
     }
 
     pub fn platform_window_id(&self) -> Option<i64> {
@@ -109,10 +121,14 @@ impl Context {
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
                         return Some(IdPath {
-                            win: self.value[iow]["platform_window_id"]
-                                .as_i64()
-                                .expect("Failed to find kitty platform window id"),
-                            tab: self.value[iow]["tabs"][it]["id"].as_i64().expect("Error"),
+                            win: match self.value[iow]["platform_window_id"].as_i64() {
+                                Some(v) => v,
+                                None => return None,
+                            },
+                            tab: match self.value[iow]["tabs"][it]["id"].as_i64() {
+                                Some(v) => v,
+                                None => return None,
+                            },
                         });
                     }
                     it += 1;
@@ -218,16 +234,22 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn set_tab_title(&self, title: &str) {
-        Command::new("kitty")
+        match Command::new("kitty")
             .arg("@")
             .arg("set-tab-title")
             .arg(title)
             .output()
-            .expect("Failed to load kitty");
+        {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(9)
+            }
+        }
     }
 
     pub fn set_tab_color(&self, tab: Tabcolor) {
-        Command::new("kitty")
+        match Command::new("kitty")
             .arg("@")
             .arg("set-tab-color")
             .arg(format!("active_bg={}", tab.active_bg))
@@ -235,7 +257,13 @@ impl Context {
             .arg(format!("inactive_bg={}", tab.inactive_bg))
             .arg(format!("inactive_fg={}", tab.inactive_fg))
             .output()
-            .expect("Failed to load kitty");
+        {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(10)
+            }
+        }
     }
 
     #[allow(dead_code)]
@@ -246,7 +274,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn set_tab_id_color(&self, idtab: i64, tab: Tabcolor) {
-        Command::new("kitty")
+        match Command::new("kitty")
             .arg("@")
             .arg("set-tab-color")
             .arg("-m")
@@ -256,7 +284,13 @@ impl Context {
             .arg(format!("inactive_bg={}", tab.inactive_bg))
             .arg(format!("inactive_fg={}", tab.inactive_fg))
             .output()
-            .expect("Failed to load kitty");
+        {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(11)
+            }
+        }
     }
 
     #[allow(dead_code)]
@@ -266,7 +300,7 @@ impl Context {
     }
 
     pub fn launch_cmd_in_new_tab_name(&mut self, name: &str, opt: &str, env: &str, cmd: &str) {
-        Command::new("kitty")
+        match Command::new("kitty")
             .arg("@")
             .arg("launch")
             .arg("--type=tab")
@@ -277,7 +311,13 @@ impl Context {
             .arg(env)
             .arg(cmd)
             .output()
-            .expect("Failed to load kitty");
+        {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(12)
+            }
+        }
         self.refresh();
     }
 
@@ -294,24 +334,36 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn focus_tab_id(&self, id: i64) {
-        Command::new("kitty")
+        match Command::new("kitty")
             .arg("@")
             .arg("focus-tab")
             .arg("-m")
             .arg(format!("id:{id}"))
             .output()
-            .expect("Failed to load kitty");
+        {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(13)
+            }
+        }
     }
 
     #[allow(dead_code)]
     pub fn focus_window_id(&self, id: i64) {
-        Command::new("kitty")
+        match Command::new("kitty")
             .arg("@")
             .arg("focus-window")
             .arg("-m")
             .arg(format!("id:{id}"))
             .output()
-            .expect("Failed to load kitty");
+        {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Error {e:?}");
+                process::exit(14)
+            }
+        }
     }
 }
 
