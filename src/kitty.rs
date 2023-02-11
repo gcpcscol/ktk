@@ -1,6 +1,5 @@
 use std::env;
 use std::fmt;
-use std::process;
 use std::process::{ChildStdout, Command, Stdio};
 
 #[derive(Debug)]
@@ -46,16 +45,9 @@ fn kittyls() -> ChildStdout {
         .stdout(Stdio::piped())
         .spawn()
     {
-        Ok(v) => match v.stdout {
-            Some(stdout) => stdout,
-            None => {
-                println!("Error");
-                process::exit(8)
-            }
-        },
+        Ok(v) => v.stdout.unwrap(),
         Err(e) => {
-            println!("Error {e:?}");
-            process::exit(7)
+            panic!("Error {e:?}");
         }
     }
 }
@@ -63,24 +55,12 @@ fn kittyls() -> ChildStdout {
 impl Context {
     pub fn new() -> Context {
         Context {
-            value: match serde_json::from_reader(kittyls()) {
-                Ok(v) => v,
-                Err(e) => {
-                    println!("Error {e:?}");
-                    process::exit(7)
-                }
-            },
+            value: serde_json::from_reader(kittyls()).unwrap(),
         }
     }
 
     pub fn refresh(&mut self) {
-        self.value = match serde_json::from_reader(kittyls()) {
-            Ok(v) => v,
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(7)
-            }
-        }
+        self.value = serde_json::from_reader(kittyls()).unwrap()
     }
 
     pub fn platform_window_id(&self) -> Option<i64> {
@@ -121,14 +101,8 @@ impl Context {
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
                         return Some(IdPath {
-                            win: match self.value[iow]["platform_window_id"].as_i64() {
-                                Some(v) => v,
-                                None => return None,
-                            },
-                            tab: match self.value[iow]["tabs"][it]["id"].as_i64() {
-                                Some(v) => v,
-                                None => return None,
-                            },
+                            win: self.value[iow]["platform_window_id"].as_i64().unwrap(),
+                            tab: self.value[iow]["tabs"][it]["id"].as_i64().unwrap(),
                         });
                     }
                     it += 1;
@@ -234,27 +208,16 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn set_tab_title(&self, title: &str) {
-        match Command::new("kitty")
+        Command::new("kitty")
             .arg("@")
             .arg("set-tab-title")
             .arg(title)
             .output()
-        {
-            Ok(o) => {
-                if o.stdout.is_empty() {
-                    println!("Error ");
-                    process::exit(9)
-                }
-            }
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(9)
-            }
-        }
+            .expect("Failed to set tab title");
     }
 
     pub fn set_tab_color(&self, tab: Tabcolor) {
-        match Command::new("kitty")
+        Command::new("kitty")
             .arg("@")
             .arg("set-tab-color")
             .arg(format!("active_bg={}", tab.active_bg))
@@ -262,13 +225,7 @@ impl Context {
             .arg(format!("inactive_bg={}", tab.inactive_bg))
             .arg(format!("inactive_fg={}", tab.inactive_fg))
             .output()
-        {
-            Ok(_) => (),
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(10)
-            }
-        }
+            .expect("Failed to change current tab color");
     }
 
     #[allow(dead_code)]
@@ -279,7 +236,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn set_tab_id_color(&self, idtab: i64, tab: Tabcolor) {
-        match Command::new("kitty")
+        Command::new("kitty")
             .arg("@")
             .arg("set-tab-color")
             .arg("-m")
@@ -289,13 +246,7 @@ impl Context {
             .arg(format!("inactive_bg={}", tab.inactive_bg))
             .arg(format!("inactive_fg={}", tab.inactive_fg))
             .output()
-        {
-            Ok(_) => (),
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(11)
-            }
-        }
+            .expect("Failed to change tab id:{idtab} color");
     }
 
     #[allow(dead_code)]
@@ -305,7 +256,7 @@ impl Context {
     }
 
     pub fn launch_cmd_in_new_tab_name(&mut self, name: &str, opt: &str, env: &str, cmd: &str) {
-        match Command::new("kitty")
+        Command::new("kitty")
             .arg("@")
             .arg("launch")
             .arg("--type=tab")
@@ -316,18 +267,7 @@ impl Context {
             .arg(env)
             .arg(cmd)
             .output()
-        {
-            Ok(o) => {
-                if o.stdout.is_empty() {
-                    println!("Error ");
-                    process::exit(12)
-                }
-            }
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(12)
-            }
-        }
+            .expect("Failed to launch {cmd} in a new tab");
         self.refresh();
     }
 
@@ -344,46 +284,24 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn focus_tab_id(&self, id: i64) {
-        match Command::new("kitty")
+        Command::new("kitty")
             .arg("@")
             .arg("focus-tab")
             .arg("-m")
             .arg(format!("id:{id}"))
             .output()
-        {
-            Ok(o) => {
-                if !o.stdout.is_empty() {
-                    println!("Error ");
-                    process::exit(13)
-                }
-            }
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(13)
-            }
-        }
+            .expect("Failed to focus tab with id:{id}");
     }
 
     #[allow(dead_code)]
     pub fn focus_window_id(&self, id: i64) {
-        match Command::new("kitty")
+        Command::new("kitty")
             .arg("@")
             .arg("focus-window")
             .arg("-m")
             .arg(format!("id:{id}"))
             .output()
-        {
-            Ok(o) => {
-                if !o.stdout.is_empty() {
-                    println!("Error ");
-                    process::exit(14)
-                }
-            }
-            Err(e) => {
-                println!("Error {e:?}");
-                process::exit(14)
-            }
-        }
+            .expect("Failed to focus window with id:{id}");
     }
 }
 
