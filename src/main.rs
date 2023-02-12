@@ -4,8 +4,12 @@ mod kube;
 mod kubeconfig;
 
 use clap::{arg, command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction};
+use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::{env, io, process};
+
+use log::{error, info};
+use simplelog::*;
 
 fn config_file() -> String {
     match env::var("KTKONFIG") {
@@ -13,6 +17,16 @@ fn config_file() -> String {
         Err(_) => {
             let cfd = dirs::config_dir().unwrap().as_path().display().to_string();
             format!("{cfd}/ktk.yaml")
+        }
+    }
+}
+
+fn logfile() -> String {
+    match env::var("KTKLOG") {
+        Ok(v) => v,
+        Err(_) => {
+            let logdir = dirs::home_dir().unwrap().as_path().display().to_string();
+            format!("{logdir}/ktk.log")
         }
     }
 }
@@ -92,27 +106,50 @@ fn main() -> Result<(), io::Error> {
         .author(crate_authors!())
         .get_matches();
 
+    // Logger
+    let conflog = ConfigBuilder::new().set_time_to_local(true).build();
+
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            LevelFilter::Warn,
+            conflog.clone(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            LevelFilter::Info,
+            conflog,
+            OpenOptions::new()
+                .create(true) // to allow creating the file, if it doesn't exist
+                .append(true) // to not truncate the file, but instead add to it
+                .open(logfile())
+                .unwrap(),
+        ),
+    ])
+    .unwrap();
+
     let config_path = match matches.get_one::<PathBuf>("config") {
         Some(v) => v,
         None => {
-            println!("Config file missing");
+            error!("Config file missing");
             process::exit(51)
         }
     };
     // Check if config file exist
     if !Path::new(config_path).exists() {
-        println!("Config file missing: {}", config_path.display());
+        error!("Config file missing: {}", config_path.display());
         process::exit(52)
     }
 
     // Load yaml config file
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
+
     // Load kitty context (kitty @ls)
     let mut k: kitty::Context;
     if env::var("KITTY_WINDOW_ID").is_ok() {
         k = kitty::Context::new();
     } else {
-        println!("This not a kitty terminal");
+        error!("This not a kitty terminal");
         process::exit(5)
     }
 
@@ -134,7 +171,7 @@ fn main() -> Result<(), io::Error> {
             let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
                 Ok(v) => v,
                 Err(e) => {
-                    println!("Error parsing file {kubeconfig}: {e:?}");
+                    error!("Error parsing file {kubeconfig}: {e:?}");
                     process::exit(6)
                 }
             };
@@ -143,7 +180,7 @@ fn main() -> Result<(), io::Error> {
             let cluster = match conf.cluster_by_name(&cluster_context) {
                 Some(v) => v,
                 None => {
-                    println!(
+                    error!(
                             "Unable to find the cluster name {cluster_context} in the configuration file."
                         );
                     process::exit(7)
@@ -184,10 +221,10 @@ fn main() -> Result<(), io::Error> {
     // otherwise create a new one.
     let tab = format!("{}{}", conf.tabprefix, &choice);
     if let Some(idwin) = k.id_window_with_tab_title(&tab) {
-        println!("go to {choice}");
+        info!("go to {choice}");
         k.focus_window_id(idwin)
     } else {
-        println!("launch {choice}");
+        info!("launch {choice}");
         // Get namespace arg
         let s: Vec<&str> = choice.split(&conf.separator).collect();
         let namespace = s[0];
