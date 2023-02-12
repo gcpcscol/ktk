@@ -92,119 +92,124 @@ fn main() -> Result<(), io::Error> {
         .author(crate_authors!())
         .get_matches();
 
-    if let Some(config_path) = matches.get_one::<PathBuf>("config") {
-        // Check if config file exist
-        if !Path::new(config_path).exists() {
-            println!("Config file missing: {}", config_path.display());
-            process::exit(5)
+    let config_path = match matches.get_one::<PathBuf>("config") {
+        Some(v) => v,
+        None => {
+            println!("Config file missing");
+            process::exit(51)
         }
+    };
+    // Check if config file exist
+    if !Path::new(config_path).exists() {
+        println!("Config file missing: {}", config_path.display());
+        process::exit(52)
+    }
 
-        // Load yaml config file
-        let conf = config::Context::new(config_path, matches.get_flag("wait"));
-        // Load kitty context (kitty @ls)
-        let mut k: kitty::Context;
-        if env::var("KITTY_WINDOW_ID").is_ok() {
-            k = kitty::Context::new();
-        } else {
-            println!("This not a kitty terminal");
-            process::exit(5)
-        }
+    // Load yaml config file
+    let conf = config::Context::new(config_path, matches.get_flag("wait"));
+    // Load kitty context (kitty @ls)
+    let mut k: kitty::Context;
+    if env::var("KITTY_WINDOW_ID").is_ok() {
+        k = kitty::Context::new();
+    } else {
+        println!("This not a kitty terminal");
+        process::exit(5)
+    }
 
-        // For evaldir option, prompt only environnement variable Kubeconfig
-        // and change directory with eval command like this :
-        //
-        // kubedir=$(ktk --evaldir)
-        // if [ "$?" -eq 0 ]; then
-        //   eval "$(echo $kubedir)"
-        // fi
+    // For evaldir option, prompt only environnement variable Kubeconfig
+    // and change directory with eval command like this :
+    //
+    // kubedir=$(ktk --evaldir)
+    // if [ "$?" -eq 0 ]; then
+    //   eval "$(echo $kubedir)"
+    // fi
 
-        if matches.get_flag("evaldir") {
-            let idpath = k.id_path_of_focus_tab();
-            if idpath.is_some() {
-                let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
-                if !Path::new(&kubeconfig).exists() {
-                    process::exit(1)
-                }
-                let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        println!("Error parsing file {kubeconfig}: {e:?}");
-                        process::exit(6)
-                    }
-                };
-                let cluster_context = kcf.cluster_context();
-                let namespace_context = kcf.namespace_context();
-                let cluster = match conf.cluster_by_name(&cluster_context) {
-                    Some(v) => v,
-                    None => {
-                        println!(
-                            "Unable to find the cluster name {cluster_context} in the configuration file."
-                        );
-                        process::exit(7)
-                    }
-                };
-
-                println!(
-                    "{}",
-                    kube::ns_workdir(cluster, namespace_context, kubeconfig)
-                );
+    if matches.get_flag("evaldir") {
+        let idpath = k.id_path_of_focus_tab();
+        if idpath.is_some() {
+            let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
+            if !Path::new(&kubeconfig).exists() {
+                process::exit(1)
             }
-            process::exit(0)
-        }
-
-        // Check if the completion file must be update
-        if !matches.get_flag("noscan")
-            && (conf.completion_file_older_than_maxage()
-                || conf.completion_file_older_than_config()
-                || matches.get_flag("force"))
-        {
-            conf.update_completion_file();
-            if matches.get_one::<String>("namespace").is_none() {
-                process::exit(0)
-            }
-        }
-
-        // Show fuzzy search to choose the namespace
-        let choice = kube::selectable_list(
-            conf.read_completion_file()
-                .split('\n')
-                .map(|x| x.to_string())
-                .collect(),
-            matches.get_one::<String>("namespace").map(|x| &**x),
-        );
-
-        // Check if the tab doesn't already exist.
-        // If it exists, go to tab,
-        // otherwise create a new one.
-        let tab = format!("{}{}", conf.tabprefix, &choice);
-        if let Some(idwin) = k.id_window_with_tab_title(&tab) {
-            println!("go to {choice}");
-            k.focus_window_id(idwin)
-        } else {
-            println!("launch {choice}");
-            // Get namespace arg
-            let s: Vec<&str> = choice.split(&conf.separator).collect();
-            let namespace = s[0];
-            if !matches.get_flag("tab") {
-                k.launch_shell_in_new_tab_name(&tab);
-            } else {
-                k.set_tab_title(&tab);
-            }
-            let cl = conf.cluster_by_name(s[1]).unwrap();
-            let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id().unwrap());
-            k.set_tab_color(cl.tabcolor.clone());
-            println!();
-            // let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
-            let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
+            let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
                 Ok(v) => v,
                 Err(e) => {
-                    println!("error parsing file {}: {e:?}", cl.kubeconfig);
+                    println!("Error parsing file {kubeconfig}: {e:?}");
                     process::exit(6)
                 }
             };
-            kcf.change_context(namespace.to_string());
-            kcf.write(destkubeconfig, k.id_of_focus_tab().unwrap().to_string());
+            let cluster_context = kcf.cluster_context();
+            let namespace_context = kcf.namespace_context();
+            let cluster = match conf.cluster_by_name(&cluster_context) {
+                Some(v) => v,
+                None => {
+                    println!(
+                            "Unable to find the cluster name {cluster_context} in the configuration file."
+                        );
+                    process::exit(7)
+                }
+            };
+
+            println!(
+                "{}",
+                kube::ns_workdir(cluster, namespace_context, kubeconfig)
+            );
         }
+        process::exit(0)
+    }
+
+    // Check if the completion file must be update
+    if !matches.get_flag("noscan")
+        && (conf.completion_file_older_than_maxage()
+            || conf.completion_file_older_than_config()
+            || matches.get_flag("force"))
+    {
+        conf.update_completion_file();
+        if matches.get_one::<String>("namespace").is_none() {
+            process::exit(0)
+        }
+    }
+
+    // Show fuzzy search to choose the namespace
+    let choice = kube::selectable_list(
+        conf.read_completion_file()
+            .split('\n')
+            .map(|x| x.to_string())
+            .collect(),
+        matches.get_one::<String>("namespace").map(|x| &**x),
+    );
+
+    // Check if the tab doesn't already exist.
+    // If it exists, go to tab,
+    // otherwise create a new one.
+    let tab = format!("{}{}", conf.tabprefix, &choice);
+    if let Some(idwin) = k.id_window_with_tab_title(&tab) {
+        println!("go to {choice}");
+        k.focus_window_id(idwin)
+    } else {
+        println!("launch {choice}");
+        // Get namespace arg
+        let s: Vec<&str> = choice.split(&conf.separator).collect();
+        let namespace = s[0];
+        if !matches.get_flag("tab") {
+            k.launch_shell_in_new_tab_name(&tab);
+        } else {
+            k.set_tab_title(&tab);
+        }
+        let cl = conf.cluster_by_name(s[1]).unwrap();
+        let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id().unwrap());
+        k.set_tab_color(cl.tabcolor.clone());
+        println!();
+        // let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
+        let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
+            Ok(v) => v,
+            Err(e) => {
+                println!("error parsing file {}: {e:?}", cl.kubeconfig);
+                process::exit(6)
+            }
+        };
+        kcf.change_context(namespace.to_string());
+        kcf.write(destkubeconfig, k.id_of_focus_tab().unwrap().to_string());
     }
 
     Ok(())

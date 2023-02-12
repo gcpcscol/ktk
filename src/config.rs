@@ -22,7 +22,13 @@ impl Context {
     pub fn new(file: &PathBuf, notimeout: bool) -> Context {
         let f = std::fs::File::open(file).expect("Could not open file.");
         // Deserialize yaml file
-        let mut cfg: Value = serde_yaml::from_reader(f).unwrap();
+        let mut cfg: Value = match serde_yaml::from_reader(f) {
+            Ok(v) => v,
+            Err(e) => {
+                println!("Unabled to load config file {} : {e}", file.display());
+                process::exit(52)
+            }
+        };
         // Merge anchrors in yaml file
         cfg.apply_merge().unwrap();
 
