@@ -28,6 +28,7 @@ fn main() -> Result<(), io::Error> {
         .arg(arg!(
             [namespace] "Namespace to operate on"
         )
+            .required_unless_present_any(["force","evaldir"])
         )
         .arg(
             Arg::new("config")
@@ -44,7 +45,7 @@ fn main() -> Result<(), io::Error> {
             Arg::new("force")
                 .short('f')
                 .long("force")
-                .action(clap::ArgAction::Count)
+                .action(clap::ArgAction::SetTrue)
                 .help("Force reconstruct cache of namespace")
                 .long_help("This option will rebuild the whole cache by requesting all clusters. Each line will contain the namespace name, followed by the cluster name. If a cluster is not available the cache data for it will be deleted."),
         )
@@ -52,7 +53,7 @@ fn main() -> Result<(), io::Error> {
             Arg::new("noscan")
                 .short('n')
                 .long("noscan")
-                .action(clap::ArgAction::Count)
+                .action(clap::ArgAction::SetTrue)
                 .help("Force reconstruct cache of namespace")
                 .help("Don't reconstruct cache of namespace")
                 .long_help("The cache is automatically rebuilt every \"maxage\" seconds. This option allows you to ignore this value to avoid refreshing the cache.")
@@ -62,7 +63,7 @@ fn main() -> Result<(), io::Error> {
             Arg::new("wait")
                 .short('w')
                 .long("wait")
-                .action(clap::ArgAction::Count)
+                .action(clap::ArgAction::SetTrue)
                 .help("Force reconstruct cache of namespace")
                 .help("disable timeout for namespaces search")
                 .long_help("Allows to override the timeout value of the config file in order to have temporarily a longer time for the cluster to respond.")
@@ -72,7 +73,7 @@ fn main() -> Result<(), io::Error> {
             Arg::new("tab")
                 .short('t')
                 .long("tab")
-                .action(clap::ArgAction::Count)
+                .action(clap::ArgAction::SetTrue)
                 .help("Force reconstruct cache of namespace")
                 .help("Change namespace without change tab (like kubens)")
         )
@@ -80,11 +81,11 @@ fn main() -> Result<(), io::Error> {
             Arg::new("evaldir")
                 .short('e')
                 .long("evaldir")
-                .action(clap::ArgAction::Count)
+                .action(clap::ArgAction::SetTrue)
                 .help("Force reconstruct cache of namespace")
                 .help("Show in stdout workdir of current cluster")
                 .long_help("Show in stdout workdir of current cluster.\nUse in your .bahsrc or .zshrc file to automatically load the correct kubeconfig file.")
-                .conflicts_with_all(["namespace", "force", "tab"]),
+                .conflicts_with_all(["namespace", "force", "tab", "wait", "noscan"]),
         )
         .version(crate_version!())
         .long_version(format!("{}\n{}", crate_version!(), crate_authors!()))
@@ -99,7 +100,7 @@ fn main() -> Result<(), io::Error> {
         }
 
         // Load yaml config file
-        let conf = config::Context::new(config_path, matches.get_count("wait") >= 1);
+        let conf = config::Context::new(config_path, matches.get_flag("wait"));
         // Load kitty context (kitty @ls)
         let mut k: kitty::Context;
         if env::var("KITTY_WINDOW_ID").is_ok() {
@@ -117,7 +118,7 @@ fn main() -> Result<(), io::Error> {
         //   eval "$(echo $kubedir)"
         // fi
 
-        if matches.get_count("evaldir") >= 1 {
+        if matches.get_flag("evaldir") {
             let idpath = k.id_path_of_focus_tab();
             if idpath.is_some() {
                 let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
@@ -152,10 +153,10 @@ fn main() -> Result<(), io::Error> {
         }
 
         // Check if the completion file must be update
-        if matches.get_count("noscan") == 0
+        if !matches.get_flag("noscan")
             && (conf.completion_file_older_than_maxage()
                 || conf.completion_file_older_than_config()
-                || matches.get_count("force") >= 1)
+                || matches.get_flag("force"))
         {
             conf.update_completion_file();
             if matches.get_one::<String>("namespace").is_none() {
@@ -184,7 +185,7 @@ fn main() -> Result<(), io::Error> {
             // Get namespace arg
             let s: Vec<&str> = choice.split(&conf.separator).collect();
             let namespace = s[0];
-            if matches.get_count("tab") == 0 {
+            if !matches.get_flag("tab") {
                 k.launch_shell_in_new_tab_name(&tab);
             } else {
                 k.set_tab_title(&tab);
