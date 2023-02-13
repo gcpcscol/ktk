@@ -1,3 +1,4 @@
+use log::{info, warn};
 use skim::prelude::*;
 use std::{
     io::Cursor,
@@ -66,7 +67,7 @@ pub fn get_namespaces(cl: Cluster, sep: String) -> Vec<String> {
         Some(status) => status.code(),
         None => {
             // child hasn't exited yet
-            println!("Unable to contact the cluster {}", cl.name);
+            warn!("Unable to contact the cluster {}", cl.name);
             child.kill().unwrap();
             child.wait().unwrap().code()
         }
@@ -102,7 +103,7 @@ pub fn get_all_ns(clusters: Vec<Cluster>) -> Vec<String> {
     for rec in rx {
         result.extend(rec);
     }
-    println!("{} namespaces found in {} clusters", result.len(), nbcl);
+    info!("{} namespaces found in {} clusters", result.len(), nbcl);
     result
 }
 
@@ -142,7 +143,7 @@ pub fn selectable_list(input: Vec<String>, query: Option<&str>) -> String {
         .unwrap_or_default();
 
     if selected_items.is_empty() {
-        eprintln!("Empty Choice");
+        warn!("Empty Choice");
         process::exit(1);
     }
 

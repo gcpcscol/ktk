@@ -1,11 +1,13 @@
 use crate::kube::{self, Cluster};
 use serde_yaml::Value;
+
 use std::fs;
 use std::io::Write;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::time::SystemTime;
+
+use log::{error, info};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Context {
@@ -25,7 +27,7 @@ impl Context {
         let mut cfg: Value = match serde_yaml::from_reader(f) {
             Ok(v) => v,
             Err(e) => {
-                println!("Unabled to load config file {} : {e}", file.display());
+                error!("Unabled to load config file {} : {e}", file.display());
                 process::exit(52)
             }
         };
@@ -119,7 +121,7 @@ impl Context {
         let complete_time = match fs::metadata(complete_file).unwrap().modified() {
             Ok(time) => time,
             Err(error) => {
-                println!("Problem opening the file: {error:?}");
+                error!("Problem opening the file: {error:?}");
                 process::exit(10)
             }
         };
@@ -127,7 +129,7 @@ impl Context {
         let config_time = match fs::metadata(config_file).unwrap().modified() {
             Ok(time) => time,
             Err(error) => {
-                println!("Problem opening the file: {error:?}");
+                error!("Problem opening the file: {error:?}");
                 process::exit(10)
             }
         };
@@ -145,7 +147,7 @@ impl Context {
             let diff = now.duration_since(time).unwrap().as_secs();
             return diff > maxage;
         } else {
-            println!("Not supported on this platform");
+            error!("Not supported on this platform");
         }
         true
     }
@@ -160,7 +162,7 @@ impl Context {
         let parent = path.parent().unwrap();
         fs::create_dir_all(parent).expect("Could not create destination dir");
 
-        println!("update {file}");
+        info!("update {file}");
         let str: String = data_compl
             .iter()
             .cloned()

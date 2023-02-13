@@ -107,7 +107,10 @@ fn main() -> Result<(), io::Error> {
         .get_matches();
 
     // Logger
-    let conflog = ConfigBuilder::new().set_time_to_local(true).build();
+    let conflog = ConfigBuilder::new()
+        .set_time_to_local(true)
+        .set_time_format_str("%Y-%m-%d %H:%M:%S")
+        .build();
 
     CombinedLogger::init(vec![
         TermLogger::new(
@@ -241,7 +244,7 @@ fn main() -> Result<(), io::Error> {
         let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
             Ok(v) => v,
             Err(e) => {
-                println!("error parsing file {}: {e:?}", cl.kubeconfig);
+                error!("error parsing file {}: {e:?}", cl.kubeconfig);
                 process::exit(6)
             }
         };
