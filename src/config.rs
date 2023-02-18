@@ -2,6 +2,7 @@ use crate::kube::{self, Cluster};
 use serde_yaml::Value;
 
 use std::fs;
+use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -166,14 +167,11 @@ impl Context {
         let str: String = data_compl
             .iter()
             .cloned()
-            .map(|x| format!("{x}\n"))
+            .map(|x| if x != "" { format!("{x}\n") } else { x })
             .collect();
 
-        let mut f = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(file)
-            .expect("Couldn't open file");
+        let mut f = File::create(file.clone()).expect("Couldn't open file");
+
         f.write_all(str.as_bytes()).expect("Couldn't write in file");
     }
 

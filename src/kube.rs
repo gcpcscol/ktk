@@ -103,6 +103,7 @@ pub fn get_all_ns(clusters: Vec<Cluster>) -> Vec<String> {
     for rec in rx {
         result.extend(rec);
     }
+    result.sort();
     info!("{} namespaces found in {} clusters", result.len(), nbcl);
     result
 }
