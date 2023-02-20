@@ -152,7 +152,9 @@ fn main() -> Result<(), io::Error> {
     if env::var("KITTY_WINDOW_ID").is_ok() {
         k = kitty::Context::new();
     } else {
-        error!("This not a kitty terminal");
+        if !matches.get_flag("evaldir") {
+            error!("This not a kitty terminal");
+        }
         process::exit(5)
     }
 

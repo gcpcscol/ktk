@@ -1,6 +1,7 @@
-use std::env;
-use std::fmt;
-use std::process::{ChildStdout, Command, Stdio};
+use log::error;
+use std::process::{self, ChildStdout, Command, Stdio};
+use std::{env, fmt, time::Duration};
+use wait_timeout::ChildExt;
 
 #[derive(Debug)]
 pub struct Context {
@@ -40,14 +41,27 @@ impl Tabcolor {
 }
 
 fn kittyls() -> ChildStdout {
-    match Command::new("kitty")
+    let mut child = Command::new("kitty")
         .args(["@", "ls"])
         .stdout(Stdio::piped())
         .spawn()
-    {
-        Ok(v) => v.stdout.unwrap(),
-        Err(e) => {
-            panic!("Error {e:?}");
+        .expect("Unable to contact kitty");
+
+    let timeout = Duration::from_secs(1);
+    let _status_code = match child.wait_timeout(timeout).unwrap() {
+        Some(status) => status.code(),
+        None => {
+            // child hasn't exited yet
+            error!("Unable to contact kitty");
+            child.kill().unwrap();
+            process::exit(5);
+        }
+    };
+    match child.stdout {
+        Some(v) => v,
+        None => {
+            error!("Unable to contact kitty");
+            process::exit(5);
         }
     }
 }
