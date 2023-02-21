@@ -77,15 +77,16 @@ impl Context {
         self.value = serde_json::from_reader(kittyls()).unwrap()
     }
 
-    pub fn platform_window_id(&self) -> Option<i64> {
+    pub fn platform_window_id(&self) -> i64 {
         let mut iow = 0;
         while self.value[iow]["is_focused"].is_boolean() {
             if self.value[iow]["is_focused"].as_bool() == Some(true) {
-                return self.value[iow]["platform_window_id"].as_i64().or(None);
+                let id = self.value[iow]["id"].as_i64().unwrap_or(0);
+                return self.value[iow]["platform_window_id"].as_i64().unwrap_or(id);
             }
             iow += 1;
         }
-        None
+        0
     }
 
     #[allow(dead_code)]
@@ -115,7 +116,7 @@ impl Context {
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
                         return Some(IdPath {
-                            win: self.value[iow]["platform_window_id"].as_i64().unwrap(),
+                            win: self.platform_window_id(),
                             tab: self.value[iow]["tabs"][it]["id"].as_i64().unwrap(),
                         });
                     }
@@ -366,7 +367,7 @@ mod tests {
     #[test]
     fn test_platform_window_id() {
         let k = new_from_file();
-        assert_eq!(k.platform_window_id(), Some(20971556));
+        assert_eq!(k.platform_window_id(), 20971556);
     }
 
     #[test]

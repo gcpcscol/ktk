@@ -239,7 +239,7 @@ fn main() -> Result<(), io::Error> {
             k.set_tab_title(&tab);
         }
         let cl = conf.cluster_by_name(s[1]).unwrap();
-        let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id().unwrap());
+        let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id());
         k.set_tab_color(cl.tabcolor.clone());
         println!();
         // let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
