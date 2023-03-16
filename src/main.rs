@@ -42,7 +42,7 @@ fn main() -> Result<(), io::Error> {
         .arg(arg!(
             [namespace] "Namespace to operate on"
         )
-            .required_unless_present_any(["force","evaldir"])
+            .required_unless_present_any(["force","evaldir","cluster"])
         )
         .arg(
             Arg::new("config")
@@ -74,6 +74,13 @@ fn main() -> Result<(), io::Error> {
                 .conflicts_with_all(["force"]),
         )
         .arg(
+            Arg::new("cluster")
+                .short('C')
+                .long("cluster")
+                .action(clap::ArgAction::SetTrue)
+                .help("Search only in current cluster (like kubens)")
+        )
+        .arg(
             Arg::new("wait")
                 .short('w')
                 .long("wait")
@@ -99,7 +106,7 @@ fn main() -> Result<(), io::Error> {
                 .help("Force reconstruct cache of namespace")
                 .help("Show in stdout workdir of current cluster")
                 .long_help("Show in stdout workdir of current cluster.\nUse in your .bahsrc or .zshrc file to automatically load the correct kubeconfig file.")
-                .conflicts_with_all(["namespace", "force", "tab", "wait", "noscan"]),
+                .conflicts_with_all(["namespace", "force", "tab", "wait", "noscan","cluster"]),
         )
         .version(crate_version!())
         .long_version(format!("{}\n{}", crate_version!(), crate_authors!()))
@@ -200,6 +207,32 @@ fn main() -> Result<(), io::Error> {
         process::exit(0)
     }
 
+    // Initialize user input namespace
+    let mut namespace_search = match matches.get_one::<String>("namespace") {
+        Some(v) => v.to_string(),
+        None => "".to_string(),
+    };
+
+    // Get current cluster context
+    if matches.get_flag("cluster") {
+        let kc = match env::var("KUBECONFIG") {
+            Ok(v) => v,
+            Err(_) => {
+                println!("No kubeconfig");
+                process::exit(1)
+            }
+        };
+
+        let kcf = match kubeconfig::Kubeconfig::new(kc.clone()) {
+            Ok(v) => v,
+            Err(e) => {
+                error!("error parsing file {}: {e:?}", kc);
+                process::exit(6)
+            }
+        };
+        namespace_search = format!("{}::{}", namespace_search, kcf.cluster_context());
+    }
+
     // Check if the completion file must be update
     if !matches.get_flag("noscan")
         && (conf.completion_file_older_than_maxage()
@@ -207,9 +240,6 @@ fn main() -> Result<(), io::Error> {
             || matches.get_flag("force"))
     {
         conf.update_completion_file();
-        if matches.get_one::<String>("namespace").is_none() {
-            process::exit(0)
-        }
     }
 
     // Show fuzzy search to choose the namespace
@@ -218,7 +248,7 @@ fn main() -> Result<(), io::Error> {
             .split('\n')
             .map(|x| x.to_string())
             .collect(),
-        matches.get_one::<String>("namespace").map(|x| &**x),
+        Some(namespace_search.as_str()),
     );
 
     // Check if the tab doesn't already exist.
@@ -232,13 +262,17 @@ fn main() -> Result<(), io::Error> {
         info!("launch {choice}");
         // Get namespace arg
         let s: Vec<&str> = choice.split(&conf.separator).collect();
+        if s.len() < 2 {
+            process::exit(0)
+        }
         let namespace = s[0];
+        let clustername = s[1];
         if !matches.get_flag("tab") {
             k.launch_shell_in_new_tab_name(&tab);
         } else {
             k.set_tab_title(&tab);
         }
-        let cl = conf.cluster_by_name(s[1]).unwrap();
+        let cl = conf.cluster_by_name(clustername).unwrap();
         let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id());
         k.set_tab_color(cl.tabcolor.clone());
         println!();
