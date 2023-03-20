@@ -245,7 +245,7 @@ fn main() -> Result<(), io::Error> {
     }
     // Show fuzzy search to choose the namespace
     // In kubens mode, we only display the namespace, not the cluster name
-    let choice = kube::selectable_list(
+    let mut choice = kube::selectable_list(
         conf.read_completion_file()
             .split('\n')
             .filter(|s| {
@@ -270,7 +270,9 @@ fn main() -> Result<(), io::Error> {
             .collect(),
         Some(namespace_search.as_str()),
     );
-
+    if matches.get_flag("cluster") {
+        choice = format!("{}{}{}", choice, conf.separator, cluster_search);
+    }
     // Check if the tab doesn't already exist.
     // If it exists, go to tab,
     // otherwise create a new one.
