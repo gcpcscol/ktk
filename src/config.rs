@@ -167,7 +167,7 @@ impl Context {
         let str: String = data_compl
             .iter()
             .cloned()
-            .map(|x| if x.is_empty() { format!("{x}\n") } else { x })
+            .map(|x| if !x.is_empty() { format!("{x}\n") } else { x })
             .collect();
 
         let mut f = File::create(file.clone()).expect("Couldn't open file");
