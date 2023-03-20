@@ -208,10 +208,12 @@ fn main() -> Result<(), io::Error> {
     }
 
     // Initialize user input namespace
-    let mut namespace_search = match matches.get_one::<String>("namespace") {
+    let namespace_search = match matches.get_one::<String>("namespace") {
         Some(v) => v.to_string(),
         None => "".to_string(),
     };
+
+    let mut cluster_search = "".to_string();
 
     // Get current cluster context
     if matches.get_flag("cluster") {
@@ -230,7 +232,7 @@ fn main() -> Result<(), io::Error> {
                 process::exit(6)
             }
         };
-        namespace_search = format!("{}::{}", namespace_search, kcf.cluster_context());
+        cluster_search = kcf.cluster_context();
     }
 
     // Check if the completion file must be update
@@ -241,12 +243,30 @@ fn main() -> Result<(), io::Error> {
     {
         conf.update_completion_file();
     }
-
     // Show fuzzy search to choose the namespace
+    // In kubens mode, we only display the namespace, not the cluster name
     let choice = kube::selectable_list(
         conf.read_completion_file()
             .split('\n')
-            .map(|x| x.to_string())
+            .filter(|s| {
+                if matches.get_flag("cluster") {
+                    s.ends_with(format!("{}{}", conf.separator, cluster_search.clone()).as_str())
+                } else {
+                    true
+                }
+            })
+            .map(|x| {
+                if !matches.get_flag("cluster") {
+                    x.to_string()
+                } else {
+                    match x.strip_suffix(
+                        format!("{}{}", conf.separator, cluster_search.clone()).as_str(),
+                    ) {
+                        Some(v) => v.to_string(),
+                        None => "".to_string(),
+                    }
+                }
+            })
             .collect(),
         Some(namespace_search.as_str()),
     );
@@ -262,17 +282,23 @@ fn main() -> Result<(), io::Error> {
         info!("launch {choice}");
         // Get namespace arg
         let s: Vec<&str> = choice.split(&conf.separator).collect();
-        if s.len() < 2 {
-            process::exit(0)
+        if s.is_empty() {
+            process::exit(0);
         }
         let namespace = s[0];
-        let clustername = s[1];
+        let mut clustername = "".to_string();
+        if s.len() == 1 && matches.get_flag("cluster") {
+            clustername = cluster_search
+        }
+        if s.len() == 2 {
+            clustername = s[1].to_string();
+        }
         if !matches.get_flag("tab") {
             k.launch_shell_in_new_tab_name(&tab);
         } else {
             k.set_tab_title(&tab);
         }
-        let cl = conf.cluster_by_name(clustername).unwrap();
+        let cl = conf.cluster_by_name(clustername.as_str()).unwrap();
         let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id());
         k.set_tab_color(cl.tabcolor.clone());
         println!();
