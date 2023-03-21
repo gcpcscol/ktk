@@ -270,6 +270,9 @@ fn main() -> Result<(), io::Error> {
             .collect(),
         Some(namespace_search.as_str()),
     );
+    if choice.is_empty() {
+        process::exit(0);
+    }
     if matches.get_flag("cluster") {
         choice = format!("{}{}{}", choice, conf.separator, cluster_search);
     }
