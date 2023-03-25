@@ -19,7 +19,7 @@ pub struct Cluster {
     pub workdir: String,    // cluster working directory
     pub prefixns: String,   // prefix before the name of the working directory
     pub disabled: bool,     // cluster is disabled
-    pub tabcolor: crate::kitty::Tabcolor,
+    pub tabcolor: crate::terminal::kitty::Tabcolor,
     pub timeout: u64, // maximum time to retrieve the list of namespaces
 }
 
@@ -153,7 +153,7 @@ pub fn selectable_list(input: Vec<String>, query: Option<&str>) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{kitty::Tabcolor, kube::ns_workdir};
+    use crate::{kube::ns_workdir, terminal::kitty::Tabcolor};
 
     use super::Cluster;
 

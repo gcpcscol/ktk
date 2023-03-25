@@ -1,7 +1,7 @@
 mod config;
-mod kitty;
 mod kube;
 mod kubeconfig;
+mod terminal;
 
 use clap::{arg, command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction};
 use std::fs::OpenOptions;
@@ -155,15 +155,7 @@ fn main() -> Result<(), io::Error> {
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
 
     // Load kitty context (kitty @ls)
-    let mut k: kitty::Context;
-    if env::var("KITTY_WINDOW_ID").is_ok() {
-        k = kitty::Context::new();
-    } else {
-        if !matches.get_flag("evaldir") {
-            error!("This not a kitty terminal");
-        }
-        process::exit(5)
-    }
+    let mut term = terminal::detect();
 
     // For evaldir option, prompt only environnement variable Kubeconfig
     // and change directory with eval command like this :
@@ -174,7 +166,7 @@ fn main() -> Result<(), io::Error> {
     // fi
 
     if matches.get_flag("evaldir") {
-        let idpath = k.id_path_of_focus_tab();
+        let idpath = term.id_path_of_focus_tab();
         if idpath.is_some() {
             let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
             if !Path::new(&kubeconfig).exists() {
@@ -280,9 +272,8 @@ fn main() -> Result<(), io::Error> {
     // If it exists, go to tab,
     // otherwise create a new one.
     let tab = format!("{}{}", conf.tabprefix, &choice);
-    if let Some(idwin) = k.id_window_with_tab_title(&tab) {
+    if term.focus_tab_name(&tab) {
         info!("go to {choice}");
-        k.focus_window_id(idwin)
     } else {
         info!("launch {choice}");
         // Get namespace arg
@@ -299,13 +290,13 @@ fn main() -> Result<(), io::Error> {
             clustername = s[1].to_string();
         }
         if !matches.get_flag("tab") {
-            k.launch_shell_in_new_tab_name(&tab);
+            term.create_new_tab(&tab);
         } else {
-            k.set_tab_title(&tab);
+            term.change_tab_title(&tab);
         }
         let cl = conf.cluster_by_name(clustername.as_str()).unwrap();
-        let destkubeconfig = format!("{}/{}", conf.kubetmp, k.platform_window_id());
-        k.set_tab_color(cl.tabcolor.clone());
+        let destkubeconfig = format!("{}/{}", conf.kubetmp, term.identifier());
+        term.change_tab_color(cl.tabcolor.clone());
         println!();
         // let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
         let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
@@ -316,7 +307,7 @@ fn main() -> Result<(), io::Error> {
             }
         };
         kcf.change_context(namespace.to_string());
-        kcf.write(destkubeconfig, k.id_of_focus_tab().unwrap().to_string());
+        kcf.write(destkubeconfig, term.id_of_focus_tab().unwrap().to_string());
     }
 
     Ok(())

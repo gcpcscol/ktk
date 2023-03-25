@@ -80,7 +80,7 @@ impl Context {
                 prefixns,
                 disabled,
                 timeout,
-                tabcolor: crate::kitty::Tabcolor {
+                tabcolor: crate::terminal::kitty::Tabcolor {
                     active_bg,
                     inactive_bg,
                     active_fg,
@@ -184,7 +184,7 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use super::{Cluster, Context};
-    use crate::kitty::Tabcolor;
+    use crate::terminal::kitty::Tabcolor;
     use crate::PathBuf;
     #[test]
     fn test_new() {
