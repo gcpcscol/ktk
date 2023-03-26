@@ -115,14 +115,14 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn id_of_focus_tab(&self) -> Option<i64> {
+    pub fn id_of_focus_tab(&self) -> Option<String> {
         let mut iow = 0;
         while self.value[iow]["is_focused"].is_boolean() {
             if self.value[iow]["is_focused"].as_bool() == Some(true) {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
-                        return self.value[iow]["tabs"][it]["id"].as_i64().or(None);
+                        return Some(self.value[iow]["tabs"][it]["id"].to_string());
                     }
                     it += 1;
                 }
@@ -325,7 +325,7 @@ mod tests {
     #[test]
     fn test_id_of_focus_tab() {
         let k = new_from_file();
-        assert_eq!(k.id_of_focus_tab(), Some(2));
+        assert_eq!(k.id_of_focus_tab(), Some("2".to_string()));
     }
 
     #[test]
