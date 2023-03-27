@@ -1,3 +1,4 @@
+use log::debug;
 use std::env;
 use std::process::Command;
 
@@ -34,6 +35,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn id_of_current_window(&self) -> Option<String> {
+        debug!("id_of_current_window");
         match Command::new("tmux")
             .arg("display-message")
             .arg("-p")
@@ -48,6 +50,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn id_path_of_current_window(&self) -> Option<String> {
+        debug!("id_path_of_current_window");
         match Command::new("tmux")
             .arg("list-windows")
             .arg("-F")
@@ -63,6 +66,7 @@ impl Context {
     }
 
     pub fn id_of_window_name(&self, name: &str) -> Option<String> {
+        debug!("id_of_window_name {name}");
         match Command::new("tmux")
             .arg("list-windows")
             .arg("-F")
@@ -74,6 +78,11 @@ impl Context {
         {
             Ok(s) => {
                 let v = String::from_utf8(s).unwrap();
+                if v.is_empty() {
+                    debug!(" id_win => None");
+                    return None;
+                }
+                debug!(" id_win => {v}");
                 return Some(String::from(v.trim_end()));
             }
             Err(_) => None,
@@ -81,6 +90,7 @@ impl Context {
     }
 
     pub fn select_window_name(&self, name: &str) -> bool {
+        debug!("select_window_name {name}");
         match self.id_of_window_name(name) {
             Some(idwin) => {
                 Command::new("tmux")
@@ -96,6 +106,7 @@ impl Context {
     }
 
     pub fn launch_cmd_in_new_tab_name(&self, name: &str, dir: &str, env: &str, cmd: &str) {
+        debug!("launch_cmd_in_new_tab_name '{name}' - '{dir}' - '{env}' - '{cmd}'");
         Command::new("tmux")
             .arg("new-window")
             .arg("-n")
@@ -110,6 +121,7 @@ impl Context {
     }
 
     pub fn launch_shell_in_new_tab_name(&self, name: &str) {
+        debug!("launch_shell_in_new_tab_name {name}");
         self.launch_cmd_in_new_tab_name(
             name,
             "",
@@ -121,6 +133,7 @@ impl Context {
     }
 
     pub fn set_tab_title(&self, name: &str) {
+        debug!("set_tab_title {name}");
         match self.id_of_window_name(name) {
             Some(idwin) => {
                 Command::new("tmux")

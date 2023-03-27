@@ -1,3 +1,4 @@
+use log::debug;
 use std::env;
 use std::fmt;
 use std::process::{ChildStdout, Command, Stdio};
@@ -90,6 +91,7 @@ impl Context {
             }
             iow += 1;
         }
+        debug!("tabs_id => {:?}", vec);
         vec
     }
 
@@ -101,10 +103,12 @@ impl Context {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
-                        return Some(IdPath {
+                        let ret = Some(IdPath {
                             win: self.platform_window_id(),
                             tab: self.value[iow]["tabs"][it]["id"].as_i64().unwrap(),
                         });
+                        debug!("id_path_of_focus_tab => {:?}", ret);
+                        return ret;
                     }
                     it += 1;
                 }
@@ -122,7 +126,9 @@ impl Context {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
-                        return Some(self.value[iow]["tabs"][it]["id"].to_string());
+                        let ret = Some(self.value[iow]["tabs"][it]["id"].to_string());
+                        debug!("id_of_focus_tab => {:?}", ret);
+                        return ret;
                     }
                     it += 1;
                 }
@@ -140,7 +146,9 @@ impl Context {
                 let mut it = 0;
                 while self.value[iow]["tabs"][it]["is_focused"].is_boolean() {
                     if self.value[iow]["tabs"][it]["is_focused"].as_bool() == Some(true) {
-                        return Some(self.value[iow]["tabs"][it]["title"].to_string());
+                        let ret = Some(self.value[iow]["tabs"][it]["title"].to_string());
+                        debug!("title_of_focus_tab => {:?}", ret);
+                        return ret;
                     }
                     it += 1;
                 }
@@ -164,9 +172,11 @@ impl Context {
                             .or(Some(false))
                             .is_some()
                         {
-                            return self.value[iow]["tabs"][it]["windows"][iw]["id"]
+                            let ret = self.value[iow]["tabs"][it]["windows"][iw]["id"]
                                 .as_i64()
                                 .or(None);
+                            debug!("id_window_with_tab_title => {:?}", ret);
+                            return ret;
                         }
                         iw += 1;
                     }
@@ -185,7 +195,9 @@ impl Context {
             let mut it = 0;
             while self.value[iow]["tabs"][it]["title"].is_string() {
                 if self.value[iow]["tabs"][it]["title"].as_str() == Some(title) {
-                    return self.value[iow]["tabs"][it]["id"].as_i64().or(None);
+                    let ret = self.value[iow]["tabs"][it]["id"].as_i64().or(None);
+                    debug!("id_tab_with_title => {:?}", ret);
+                    return ret;
                 };
                 it += 1;
             }
@@ -209,6 +221,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn set_tab_title(&self, title: &str) {
+        debug!("set_tab_title {}", title);
         Command::new("kitty")
             .arg("@")
             .arg("set-tab-title")
@@ -218,6 +231,7 @@ impl Context {
     }
 
     pub fn set_tab_color(&self, tab: Tabcolor) {
+        debug!("set_tab_color {:?}", tab);
         Command::new("kitty")
             .arg("@")
             .arg("set-tab-color")
@@ -231,12 +245,14 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn unset_tab_color(&self) {
+        debug!("unset_tab_color");
         let tabc = Tabcolor::new();
         self.set_tab_color(tabc)
     }
 
     #[allow(dead_code)]
     pub fn set_tab_id_color(&self, idtab: i64, tab: Tabcolor) {
+        debug!("set_tab_id_color id:{:?} tab:{:?}", idtab, tab);
         Command::new("kitty")
             .arg("@")
             .arg("set-tab-color")
@@ -252,11 +268,16 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn unset_tab_id_color(&self, idtab: i64) {
+        debug!("unset_tab_id_color");
         let tabc = Tabcolor::new();
         self.set_tab_id_color(idtab, tabc)
     }
 
     pub fn launch_cmd_in_new_tab_name(&mut self, name: &str, opt: &str, env: &str, cmd: &str) {
+        debug!(
+            "set_tab_id_color name:'{:?}' opt:'{:?}' env:'{:?}' cmd:'{:?}'",
+            name, opt, env, cmd
+        );
         Command::new("kitty")
             .arg("@")
             .arg("launch")
@@ -273,6 +294,7 @@ impl Context {
     }
 
     pub fn launch_shell_in_new_tab_name(&mut self, name: &str) {
+        debug!("launch_shell_in_new_tab_name {}", name);
         self.launch_cmd_in_new_tab_name(
             name,
             "",
@@ -285,6 +307,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn focus_tab_id(&self, id: i64) {
+        debug!("focus_tab_id {id}");
         Command::new("kitty")
             .arg("@")
             .arg("focus-tab")
@@ -296,6 +319,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn focus_window_id(&self, id: i64) {
+        debug!("focus_window_id {id}");
         Command::new("kitty")
             .arg("@")
             .arg("focus-window")

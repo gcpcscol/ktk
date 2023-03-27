@@ -8,7 +8,7 @@ use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::{env, io, process};
 
-use log::{error, info};
+use log::{debug, error, info};
 use simplelog::*;
 
 fn config_file() -> String {
@@ -99,6 +99,13 @@ fn main() -> Result<(), io::Error> {
                 .help("Change namespace without change tab (like kubens)")
         )
         .arg(
+            Arg::new("debug")
+                .short('d')
+                .long("debug")
+                .action(clap::ArgAction::SetTrue)
+                .help("Record debug event in log file")
+        )
+        .arg(
             Arg::new("evaldir")
                 .short('e')
                 .long("evaldir")
@@ -119,24 +126,45 @@ fn main() -> Result<(), io::Error> {
         .set_time_format_str("%Y-%m-%d %H:%M:%S")
         .build();
 
-    CombinedLogger::init(vec![
-        TermLogger::new(
-            LevelFilter::Warn,
-            conflog.clone(),
-            TerminalMode::Mixed,
-            ColorChoice::Auto,
-        ),
-        WriteLogger::new(
-            LevelFilter::Info,
-            conflog,
-            OpenOptions::new()
-                .create(true) // to allow creating the file, if it doesn't exist
-                .append(true) // to not truncate the file, but instead add to it
-                .open(logfile())
-                .unwrap(),
-        ),
-    ])
-    .unwrap();
+    if matches.get_flag("debug") {
+        CombinedLogger::init(vec![
+            TermLogger::new(
+                LevelFilter::Debug,
+                conflog.clone(),
+                TerminalMode::Mixed,
+                ColorChoice::Auto,
+            ),
+            WriteLogger::new(
+                LevelFilter::Debug,
+                conflog,
+                OpenOptions::new()
+                    .create(true) // to allow creating the file, if it doesn't exist
+                    .append(true) // to not truncate the file, but instead add to it
+                    .open(logfile())
+                    .unwrap(),
+            ),
+        ])
+        .unwrap();
+    } else {
+        CombinedLogger::init(vec![
+            TermLogger::new(
+                LevelFilter::Warn,
+                conflog.clone(),
+                TerminalMode::Mixed,
+                ColorChoice::Auto,
+            ),
+            WriteLogger::new(
+                LevelFilter::Info,
+                conflog,
+                OpenOptions::new()
+                    .create(true) // to allow creating the file, if it doesn't exist
+                    .append(true) // to not truncate the file, but instead add to it
+                    .open(logfile())
+                    .unwrap(),
+            ),
+        ])
+        .unwrap();
+    }
 
     let config_path = match matches.get_one::<PathBuf>("config") {
         Some(v) => v,
@@ -145,6 +173,7 @@ fn main() -> Result<(), io::Error> {
             process::exit(51)
         }
     };
+    debug!("config_path: {:?}", config_path);
     // Check if config file exist
     if !Path::new(config_path).exists() {
         error!("Config file missing: {}", config_path.display());

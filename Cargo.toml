@@ -1,6 +1,6 @@
 [package]
 name = "ktk"
-version = "0.14.0"
+version = "0.14.1"
 authors = ["https://framagit.org/gauthier/ktk"]
 edition = "2021"
 description = "Kitty Tab for Kubeconfig"
