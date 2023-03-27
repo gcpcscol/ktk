@@ -238,10 +238,11 @@ fn main() -> Result<(), io::Error> {
 
     // Get current cluster context
     if matches.get_flag("cluster") {
+        debug!("Get current cluster context");
         let kc = match env::var("KUBECONFIG") {
             Ok(v) => v,
             Err(_) => {
-                println!("No kubeconfig");
+                error!("No kubeconfig");
                 process::exit(1)
             }
         };
@@ -262,6 +263,7 @@ fn main() -> Result<(), io::Error> {
             || conf.completion_file_older_than_config()
             || matches.get_flag("force"))
     {
+        debug!("Update completion file {}", conf.completion_filename);
         conf.update_completion_file();
     }
     // Show fuzzy search to choose the namespace
@@ -292,7 +294,8 @@ fn main() -> Result<(), io::Error> {
         Some(namespace_search.as_str()),
     );
     if choice.is_empty() {
-        process::exit(0);
+        debug!("Empty choice");
+        process::exit(130);
     }
     if matches.get_flag("cluster") {
         choice = format!("{}{}{}", choice, conf.separator, cluster_search);
