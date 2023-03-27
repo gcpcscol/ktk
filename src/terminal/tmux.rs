@@ -106,7 +106,10 @@ impl Context {
     }
 
     pub fn launch_cmd_in_new_tab_name(&self, name: &str, dir: &str, env: &str, cmd: &str) {
-        debug!("launch_cmd_in_new_tab_name '{name}' - '{dir}' - '{env}' - '{cmd}'");
+        debug!(
+            "launch_cmd_in_new_tab_name name:{:?} dir:{:?} env:{:?} cmd:{:?}",
+            name, dir, env, cmd
+        );
         Command::new("tmux")
             .arg("new-window")
             .arg("-n")

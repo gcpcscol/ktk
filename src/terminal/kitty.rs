@@ -275,7 +275,7 @@ impl Context {
 
     pub fn launch_cmd_in_new_tab_name(&mut self, name: &str, opt: &str, env: &str, cmd: &str) {
         debug!(
-            "set_tab_id_color name:'{:?}' opt:'{:?}' env:'{:?}' cmd:'{:?}'",
+            "launch_cmd_in_new_tab_name name:{:?} opt:{:?} env:{:?} cmd:{:?}",
             name, opt, env, cmd
         );
         Command::new("kitty")
