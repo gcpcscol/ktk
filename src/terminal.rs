@@ -2,6 +2,8 @@ pub mod kitty;
 pub mod tmux;
 use std::{env, process};
 
+use log::{debug, error};
+
 pub struct Kitty {
     context: kitty::Context,
 }
@@ -24,16 +26,21 @@ pub trait Terminal {
 pub fn detect() -> Box<dyn Terminal> {
     match env::var("TERM").unwrap().as_str() {
         "xterm-kitty" => {
+            debug!("Kitty terminal");
             return Box::new(Kitty {
                 context: kitty::Context::new(),
-            })
+            });
         }
         "tmux-256color" => {
+            debug!("Tmux terminal");
             return Box::new(Tmux {
                 context: tmux::Context::new(),
-            })
+            });
         }
-        _ => process::exit(42),
+        _ => {
+            error!("Only supports Kitty and Tmux for now.");
+            process::exit(42)
+        }
     }
 }
 
