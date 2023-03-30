@@ -78,7 +78,7 @@ fn main() -> Result<(), io::Error> {
                 .short('C')
                 .long("cluster")
                 .action(clap::ArgAction::SetTrue)
-                .help("Search only in current cluster (like kubens)")
+                .help("Search only in current cluster like kubens (alias kubens=\"ktk -t -C\")")
         )
         .arg(
             Arg::new("wait")
@@ -126,45 +126,30 @@ fn main() -> Result<(), io::Error> {
         .set_time_format_str("%Y-%m-%d %H:%M:%S")
         .build();
 
+    let mut log_level_term = LevelFilter::Warn;
+    let mut log_level_file = LevelFilter::Info;
     if matches.get_flag("debug") {
-        CombinedLogger::init(vec![
-            TermLogger::new(
-                LevelFilter::Debug,
-                conflog.clone(),
-                TerminalMode::Mixed,
-                ColorChoice::Auto,
-            ),
-            WriteLogger::new(
-                LevelFilter::Debug,
-                conflog,
-                OpenOptions::new()
-                    .create(true) // to allow creating the file, if it doesn't exist
-                    .append(true) // to not truncate the file, but instead add to it
-                    .open(logfile())
-                    .unwrap(),
-            ),
-        ])
-        .unwrap();
-    } else {
-        CombinedLogger::init(vec![
-            TermLogger::new(
-                LevelFilter::Warn,
-                conflog.clone(),
-                TerminalMode::Mixed,
-                ColorChoice::Auto,
-            ),
-            WriteLogger::new(
-                LevelFilter::Info,
-                conflog,
-                OpenOptions::new()
-                    .create(true) // to allow creating the file, if it doesn't exist
-                    .append(true) // to not truncate the file, but instead add to it
-                    .open(logfile())
-                    .unwrap(),
-            ),
-        ])
-        .unwrap();
+        log_level_term = LevelFilter::Debug;
+        log_level_file = LevelFilter::Debug;
     }
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            log_level_term,
+            conflog.clone(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            log_level_file,
+            conflog,
+            OpenOptions::new()
+                .create(true) // to allow creating the file, if it doesn't exist
+                .append(true) // to not truncate the file, but instead add to it
+                .open(logfile())
+                .unwrap(),
+        ),
+    ])
+    .unwrap();
 
     let config_path = match matches.get_one::<PathBuf>("config") {
         Some(v) => v,
@@ -330,7 +315,6 @@ fn main() -> Result<(), io::Error> {
         let destkubeconfig = format!("{}/{}", conf.kubetmp, term.identifier());
         term.change_tab_color(cl.tabcolor.clone());
         println!();
-        // let mut kcf = kubeconfig::Kubeconfig::new(cl.kubeconfig.clone());
         let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
             Ok(v) => v,
             Err(e) => {
