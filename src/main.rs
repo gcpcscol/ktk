@@ -8,6 +8,7 @@ use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::{env, io, process};
 
+use color_print;
 use log::{debug, error, info};
 use simplelog::*;
 
@@ -16,7 +17,7 @@ fn config_file() -> String {
         Ok(v) => v,
         Err(_) => {
             let cfd = dirs::config_dir().unwrap().as_path().display().to_string();
-            format!("{cfd}/ktk.yaml")
+            format!("{cfd}/{}.yaml", crate_name!())
         }
     }
 }
@@ -26,13 +27,30 @@ fn logfile() -> String {
         Ok(v) => v,
         Err(_) => {
             let logdir = dirs::home_dir().unwrap().as_path().display().to_string();
-            format!("{logdir}/ktk.log")
+            format!("{logdir}/{}.log", crate_name!())
         }
     }
 }
 
 fn main() -> Result<(), io::Error> {
+    let after_help: &'static str = color_print::cstr!(
+        r#"<bold><green>Examples:</green></bold>
+  <dim>$</dim> <bold>ktk kube-system::production</bold>
+  <dim>$</dim> <bold>ktk -t -C kube-system</bold>
+"#
+    );
+    let override_usage: &'static str = color_print::cstr!(
+        r#"<bold><green>Usage:</green></bold> <bold>ktk</bold> [OPTIONS] [namespace::cluster]"#
+    );
+
     let matches = command!() // requires `cargo` feature
+        .help_template("\
+{before-help}{name} {version}
+{author-with-newline}{about-with-newline}
+{usage}
+
+{all-args}{after-help}
+")
         .before_long_help(format!(
             "{} search for you the good namespace and load it directly in a kitty tab.
     The new tab is open directly in the good working directory.",
@@ -78,7 +96,7 @@ fn main() -> Result<(), io::Error> {
                 .short('C')
                 .long("cluster")
                 .action(clap::ArgAction::SetTrue)
-                .help("Search only in current cluster like kubens (alias kubens=\"ktk -t -C\")")
+                .help(format!("Search only in current cluster like kubens (alias kubens=\"{} -t -C\")",crate_name!()))
         )
         .arg(
             Arg::new("wait")
@@ -118,6 +136,8 @@ fn main() -> Result<(), io::Error> {
         .version(crate_version!())
         .long_version(format!("{}\n{}", crate_version!(), crate_authors!()))
         .author(crate_authors!())
+        .after_help(after_help)
+        .override_usage(override_usage)
         .get_matches();
 
     // Logger

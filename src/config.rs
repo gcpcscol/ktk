@@ -1,4 +1,5 @@
 use crate::kube::{self, Cluster};
+use clap::crate_name;
 use serde_yaml::Value;
 
 use std::fs;
@@ -39,7 +40,10 @@ impl Context {
         let value_string = |v: &serde_yaml::Value, def: &str| {
             v.as_str().map_or(def.to_string(), |s| s.to_string())
         };
-        let kubetmp = value_string(&cfg["global"]["kubetmp"], "/tmp/ktk");
+        let kubetmp = value_string(
+            &cfg["global"]["kubetmp"],
+            format!("/tmp/{}", crate_name!()).as_str(),
+        );
         let separator = value_string(&cfg["global"]["separator"], "::");
         let completion_filename =
             value_string(&cfg["global"]["completion"]["file"], "/tmp/tkcomplete");
