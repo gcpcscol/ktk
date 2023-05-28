@@ -44,9 +44,27 @@ impl Context {
             &cfg["global"]["kubetmp"],
             format!("/tmp/{}", crate_name!()).as_str(),
         );
+
+        let pathktmp = Path::new(&kubetmp);
+        let parentktmp = pathktmp.parent().unwrap();
+        if !fs::create_dir_all(parentktmp).is_ok() {
+            error!("Could not create destination dir for kubetmp {kubetmp}");
+            process::exit(53)
+        }
+
         let separator = value_string(&cfg["global"]["separator"], "::");
         let completion_filename =
             value_string(&cfg["global"]["completion"]["file"], "/tmp/tkcomplete");
+
+        let pathcf = Path::new(&completion_filename);
+        let parentcf = pathcf.parent().unwrap();
+        if !fs::create_dir_all(parentcf).is_ok() {
+            error!(
+                "Could not create destination dir for completion_filename {completion_filename}"
+            );
+            process::exit(53)
+        }
+
         let maxage = cfg["global"]["completion"]["maxage"]
             .as_u64()
             .unwrap_or(3600);
@@ -120,6 +138,10 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn completion_file_older_than_config(&self) -> bool {
+        if !Path::new(&self.completion_filename).exists() {
+            return true;
+        }
+
         let complete_file = self.completion_filename.clone();
         let config_file = self.config_filename.clone();
 
@@ -143,6 +165,10 @@ impl Context {
     }
 
     pub fn completion_file_older_than_maxage(&self) -> bool {
+        if !Path::new(&self.completion_filename).exists() {
+            return true;
+        }
+
         let now = SystemTime::now();
 
         let file = self.completion_filename.clone();
