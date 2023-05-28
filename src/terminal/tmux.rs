@@ -137,18 +137,11 @@ impl Context {
 
     pub fn set_tab_title(&self, name: &str) {
         debug!("set_tab_title {name}");
-        match self.id_of_window_name(name) {
-            Some(idwin) => {
-                Command::new("tmux")
-                    .arg("rename-window")
-                    .arg("-t")
-                    .arg(idwin)
-                    .arg(name)
-                    .output()
-                    .expect("Failed to launch tmux window");
-            }
-            None => println!("Error set_tab_title"),
-        }
+        Command::new("tmux")
+            .arg("rename-window")
+            .arg(name)
+            .output()
+            .expect("Failed to launch tmux window");
     }
 }
 
