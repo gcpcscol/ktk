@@ -8,7 +8,6 @@ use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::{env, io, process};
 
-use color_print;
 use log::{debug, error, info};
 use simplelog::*;
 
@@ -343,7 +342,7 @@ fn main() -> Result<(), io::Error> {
             }
         };
         kcf.change_context(namespace.to_string());
-        kcf.write(destkubeconfig, term.id_of_focus_tab().unwrap().to_string());
+        kcf.write(destkubeconfig, term.id_of_focus_tab().unwrap());
     }
 
     Ok(())

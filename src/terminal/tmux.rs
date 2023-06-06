@@ -99,7 +99,7 @@ impl Context {
                     .arg(idwin)
                     .output()
                     .expect("Failed to select tmux window");
-                return true;
+                true
             }
             None => false,
         }

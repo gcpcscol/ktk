@@ -47,7 +47,7 @@ impl Context {
 
         let pathktmp = Path::new(&kubetmp);
         let parentktmp = pathktmp.parent().unwrap();
-        if !fs::create_dir_all(parentktmp).is_ok() {
+        if fs::create_dir_all(parentktmp).is_err() {
             error!("Could not create destination dir for kubetmp {kubetmp}");
             process::exit(53)
         }
@@ -58,7 +58,7 @@ impl Context {
 
         let pathcf = Path::new(&completion_filename);
         let parentcf = pathcf.parent().unwrap();
-        if !fs::create_dir_all(parentcf).is_ok() {
+        if fs::create_dir_all(parentcf).is_err() {
             error!(
                 "Could not create destination dir for completion_filename {completion_filename}"
             );

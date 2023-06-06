@@ -27,15 +27,15 @@ pub fn detect() -> Box<dyn Terminal> {
     match env::var("TERM").unwrap().as_str() {
         "xterm-kitty" => {
             debug!("Kitty terminal");
-            return Box::new(Kitty {
+            Box::new(Kitty {
                 context: kitty::Context::new(),
-            });
+            })
         }
         "tmux-256color" => {
             debug!("Tmux terminal");
-            return Box::new(Tmux {
+            Box::new(Tmux {
                 context: tmux::Context::new(),
-            });
+            })
         }
         _ => {
             error!("Only supports Kitty and Tmux for now.");
@@ -90,7 +90,7 @@ impl Terminal for Tmux {
     }
 
     fn identifier(&self) -> String {
-        format!("{}", self.context.current_session())
+        self.context.current_session()
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -100,7 +100,7 @@ impl Terminal for Tmux {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_current_window()
-            .map(|expr| format!("{}", expr.to_string().trim_end()))
+            .map(|expr| expr.trim_end().to_string())
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
