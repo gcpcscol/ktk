@@ -1,3 +1,9 @@
+//! `ktk` is a command line tool to manage multiple kubeconfig files simultaneously in different kitty tabs.
+//!
+//! It is possible to customize the name and the color of the tabs for each cluster, to search quickly in thousands of namespaces, with a cache file.
+//! When `ktk` open a new tab, you go directly to a working directory specific to the cluster and the namespace.
+//!
+//! `ktk` can easily manage dozens of clusters with thousands of namespaces.
 mod config;
 mod kube;
 mod kubeconfig;

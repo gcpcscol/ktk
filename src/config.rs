@@ -1,3 +1,4 @@
+//! Read ktk yaml file and load Context
 use crate::kube::{self, Cluster};
 use clap::crate_name;
 use serde_yaml::Value;
@@ -24,6 +25,7 @@ pub struct Context {
 
 impl Context {
     pub fn new(file: &PathBuf, notimeout: bool) -> Context {
+        //! Load config file in struct Context
         let f = std::fs::File::open(file).expect("Could not open file.");
         // Deserialize yaml file
         let mut cfg: Value = match serde_yaml::from_reader(f) {
