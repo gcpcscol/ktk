@@ -26,7 +26,7 @@ pub struct Cluster {
 #[allow(dead_code)]
 pub fn ns_workdir(cluster: &Cluster, namespace: String, kubeconfig: String) -> String {
     if cluster.prefixns.is_empty()
-        || namespace.get(..cluster.prefixns.len()).unwrap() != cluster.prefixns
+        || namespace.get(..cluster.prefixns.len()).unwrap_or("") != cluster.prefixns
     {
         let testpath = format!("{}/{}", cluster.workdir, namespace);
         if Path::new(&testpath).exists() {
