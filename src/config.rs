@@ -189,6 +189,11 @@ impl Context {
         // fetch all namespace in all clusters
         let data_compl = kube::get_all_ns(self.clusters.clone());
 
+        // Do not change the completion file if no cluster can be reached.
+        if data_compl.is_empty() {
+            error!("no cluster is reachable");
+            return;
+        }
         let file = self.completion_filename.clone();
         // Create directory if it don't exist
         let path = Path::new(&file);
