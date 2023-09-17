@@ -3,18 +3,18 @@ global:
   kubetmp: "/run/user/1000/.kubeconfig"
   separator: "@"
   completion:
-    file: "/home/user/.kube/tkcompleted"
+    file: "~/.kube/tkcompleted"
     maxage: 86400
   tabprefix: "☸"
 
 
 .workdir: &workdir
-  path: "/home/user/deploy"
+  path: "~/deploy"
   subdir: "."
   prefixns: ""
 
 .kubeconfig: &kubeconfig
-  path: "/home/user/.kube/konfigs"
+  path: "~/.kube/konfigs"
   file: "default"
   timeout: 20
 

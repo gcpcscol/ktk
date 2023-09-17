@@ -230,7 +230,7 @@ mod tests {
         assert_eq!(conf.kubetmp, "/run/user/1000/.kubeconfig");
         assert_eq!(conf.maxage, 86400);
         assert_eq!(conf.clusters[0].name, "prod");
-        assert_eq!(conf.clusters[1].workdir, "/home/user/deploy/deploy_env_dev");
+        assert_eq!(conf.clusters[1].workdir, "~/deploy/deploy_env_dev");
         assert_eq!(conf.clusters[1].tabcolor.active_bg, "#7dcfff");
     }
 
@@ -251,8 +251,8 @@ mod tests {
             conf.cluster_by_name("prod"),
             Some(&Cluster {
                 name: "prod".to_string(),
-                kubeconfig: "/home/user/.kube/konfigs/prod".to_string(),
-                workdir: "/home/user/deploy/deploy_env_prod".to_string(),
+                kubeconfig: "~/.kube/konfigs/prod".to_string(),
+                workdir: "~/deploy/deploy_env_prod".to_string(),
                 prefixns: "".to_string(),
                 disabled: false,
                 timeout: 5,
@@ -265,6 +265,6 @@ mod tests {
             })
         );
         let c1 = conf.cluster_by_name("dev").unwrap();
-        assert_eq!(c1.workdir, "/home/user/deploy/deploy_env_dev");
+        assert_eq!(c1.workdir, "~/deploy/deploy_env_dev");
     }
 }

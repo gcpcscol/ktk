@@ -147,8 +147,9 @@ fn main() -> Result<(), io::Error> {
 
     // Logger
     let conflog = ConfigBuilder::new()
-        .set_time_to_local(true)
-        .set_time_format_str("%Y-%m-%d %H:%M:%S")
+        .set_time_format_custom(format_description!(
+            "[year]-[month]-[day] [hour]:[minute]:[second] UTC"
+        ))
         .build();
 
     let mut log_level_term = LevelFilter::Warn;
