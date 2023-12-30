@@ -92,7 +92,6 @@ fn main() -> Result<(), io::Error> {
                 .long("noscan")
                 .action(clap::ArgAction::SetTrue)
                 .help("Do not reconstruct cache of namespace")
-                .help("Do not reconstruct cache of namespace")
                 .long_help("The cache is automatically rebuilt every \"maxage\" seconds. This option allows you to ignore this value to avoid refreshing the cache.")
                 .conflicts_with_all(["force"]),
         )
@@ -108,7 +107,6 @@ fn main() -> Result<(), io::Error> {
                 .short('w')
                 .long("wait")
                 .action(clap::ArgAction::SetTrue)
-                .help("Force reconstruct cache of namespace")
                 .help("disable timeout for namespaces search")
                 .long_help("Allows to override the timeout value of the config file in order to have temporarily a longer time for the cluster to respond.")
                 .conflicts_with_all(["evaldir", "noscan"]),
@@ -118,7 +116,6 @@ fn main() -> Result<(), io::Error> {
                 .short('t')
                 .long("tab")
                 .action(clap::ArgAction::SetTrue)
-                .help("Force reconstruct cache of namespace")
                 .help("Change namespace without change tab (like kubens)")
         )
         .arg(
