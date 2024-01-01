@@ -78,7 +78,7 @@ impl Context {
 
         while cfg["clusters"][i].is_mapping() {
             let name = value_or_empty(&cfg["clusters"][i]["name"]);
-            let kubeconfig = format!(
+            let kubeconfig_path = format!(
                 "{}/{}",
                 value_string(&cfg["clusters"][i]["kubeconfig"]["path"], ""),
                 value_string(&cfg["clusters"][i]["kubeconfig"]["file"], "")
@@ -99,7 +99,7 @@ impl Context {
                 .map_or(10, |t| if notimeout { 60 } else { t });
             let cl: Cluster = Cluster {
                 name,
-                kubeconfig,
+                kubeconfig_path,
                 workdir,
                 prefixns,
                 disabled,
@@ -251,7 +251,7 @@ mod tests {
             conf.cluster_by_name("prod"),
             Some(&Cluster {
                 name: "prod".to_string(),
-                kubeconfig: "~/.kube/konfigs/prod".to_string(),
+                kubeconfig_path: "~/.kube/konfigs/prod".to_string(),
                 workdir: "~/deploy/deploy_env_prod".to_string(),
                 prefixns: "".to_string(),
                 disabled: false,

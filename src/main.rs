@@ -338,10 +338,10 @@ fn main() -> Result<(), io::Error> {
         let destkubeconfig = format!("{}/{}", conf.kubetmp, term.identifier());
         term.change_tab_color(cl.tabcolor.clone());
         println!();
-        let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig.clone()) {
+        let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig_path.clone()) {
             Ok(v) => v,
             Err(e) => {
-                error!("error parsing file {}: {e:?}", cl.kubeconfig);
+                error!("error parsing file {}: {e:?}", cl.kubeconfig_path);
                 process::exit(6)
             }
         };

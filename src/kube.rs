@@ -14,11 +14,11 @@ use wait_timeout::ChildExt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cluster {
-    pub name: String,       // cluster name
-    pub kubeconfig: String, // kubeconfig path/file
-    pub workdir: String,    // cluster working directory
-    pub prefixns: String,   // prefix before the name of the working directory
-    pub disabled: bool,     // cluster is disabled
+    pub name: String,            // cluster name
+    pub kubeconfig_path: String, // kubeconfig path/file
+    pub workdir: String,         // cluster working directory
+    pub prefixns: String,        // prefix before the name of the working directory
+    pub disabled: bool,          // cluster is disabled
     pub tabcolor: crate::terminal::kitty::Tabcolor,
     pub timeout: u64, // maximum time to retrieve the list of namespaces
 }
@@ -53,7 +53,7 @@ pub fn ns_workdir(cluster: &Cluster, namespace: String, kubeconfig: String) -> S
 
 pub fn get_namespaces(cl: Cluster, sep: String) -> Vec<String> {
     let mut child = Command::new("kubectl")
-        .arg(format!("--kubeconfig={}", cl.kubeconfig))
+        .arg(format!("--kubeconfig={}", cl.kubeconfig_path))
         .arg("get")
         .arg("namespace")
         .arg("-o=custom-columns=Name:.metadata.name")
@@ -161,7 +161,7 @@ mod tests {
     fn test_ns_workdir_path_not_exist() {
         let namespace = "test-mynamespace".to_string();
         let name = "test".to_string();
-        let cluster_kubeconfig = "/path/kubeconfig/cluster".to_string();
+        let cluster_kubeconfig_path = "/path/kubeconfig/cluster".to_string();
         let workdir = "/path/workdir/test".to_string();
         let prefixns = "test-".to_string();
         let disabled = false;
@@ -174,7 +174,7 @@ mod tests {
         let timeout = 5;
         let cluster = Cluster {
             name,
-            kubeconfig: cluster_kubeconfig,
+            kubeconfig_path: cluster_kubeconfig_path,
             workdir,
             prefixns,
             disabled,
@@ -193,7 +193,7 @@ mod tests {
     fn test_ns_workdir_path_exist() {
         let namespace = "test-fonts".to_string();
         let name = "test".to_string();
-        let cluster_kubeconfig = "/path/kubeconfig/cluster".to_string();
+        let cluster_kubeconfig_path = "/path/kubeconfig/cluster".to_string();
         let workdir = "/usr/share".to_string();
         let prefixns = "test-".to_string();
         let disabled = false;
@@ -206,7 +206,7 @@ mod tests {
         let timeout = 5;
         let cluster = Cluster {
             name,
-            kubeconfig: cluster_kubeconfig,
+            kubeconfig_path: cluster_kubeconfig_path,
             workdir,
             prefixns,
             disabled,
@@ -225,7 +225,7 @@ mod tests {
     fn test_ns_workdir_path_exist_no_prefix() {
         let namespace = "fonts".to_string();
         let name = "test".to_string();
-        let cluster_kubeconfig = "/path/kubeconfig/cluster".to_string();
+        let cluster_kubeconfig_path = "/path/kubeconfig/cluster".to_string();
         let workdir = "/usr/share".to_string();
         let prefixns = "".to_string();
         let disabled = false;
@@ -238,7 +238,7 @@ mod tests {
         let timeout = 5;
         let cluster = Cluster {
             name,
-            kubeconfig: cluster_kubeconfig,
+            kubeconfig_path: cluster_kubeconfig_path,
             workdir,
             prefixns,
             disabled,

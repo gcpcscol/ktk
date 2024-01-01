@@ -23,4 +23,3 @@ wait-timeout = "0.2.*"
 simplelog = { version = "0.12.*", features = ["paris"] }
 log = "0.4.*"
 color-print = "0.3.*"
-kube = "0.87.2"
