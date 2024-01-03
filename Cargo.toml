@@ -23,3 +23,6 @@ wait-timeout = "0.2.*"
 simplelog = { version = "0.12.*", features = ["paris"] }
 log = "0.4.*"
 color-print = "0.3.*"
+tokio = { version = "1", features = ["full"] }
+kube = { version = "0.87.2", features = ["runtime", "derive"] }
+k8s-openapi = { version = "0.20.0", features = ["latest"] }

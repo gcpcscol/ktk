@@ -187,7 +187,7 @@ impl Context {
 
     pub fn update_completion_file(&self) {
         // fetch all namespace in all clusters
-        let data_compl = kube::get_all_ns(self.clusters.clone());
+        let data_compl = kube::get_all_ns(self.clusters.clone(), self.separator.clone());
 
         // Do not change the completion file if no cluster can be reached.
         if data_compl.is_empty() {
