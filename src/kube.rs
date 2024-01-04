@@ -23,7 +23,7 @@ pub struct Cluster {
     pub prefixns: String,        // prefix before the name of the working directory
     pub disabled: bool,          // cluster is disabled
     pub tabcolor: crate::terminal::kitty::Tabcolor,
-    pub timeout: u64, // maximum time to retrieve the list of namespaces
+    pub timeout: u32, // maximum time to retrieve the list of namespaces
 }
 
 #[allow(dead_code)]
@@ -73,20 +73,31 @@ pub fn get_kubeconfig_option(kubeconfig: Kubeconfig) -> Option<KubeConfigOptions
 }
 
 #[tokio::main]
-pub async fn get_namespaces(kubeconfig: Kubeconfig, sep: String) -> Vec<String> {
+pub async fn get_namespaces(kubeconfig: Kubeconfig, sep: String, timeout: u32) -> Vec<String> {
     match get_kubeconfig_option(kubeconfig.clone()) {
         Some(kubeopt) => {
-            let config = Config::from_custom_kubeconfig(kubeconfig, &kubeopt)
-                .await
-                .unwrap();
-            let client = Client::try_from(config).unwrap();
+            let config = match Config::from_custom_kubeconfig(kubeconfig, &kubeopt).await {
+                Ok(c) => c,
+                Err(e) => {
+                    warn!("{}", e);
+                    return Vec::new();
+                }
+            };
+            let client = match Client::try_from(config) {
+                Ok(c) => c,
+                Err(e) => {
+                    warn!("{}", e);
+                    return Vec::new();
+                }
+            };
             let namespaces: Api<Namespace> = Api::all(client);
 
             let cluster_name = match kubeopt.cluster {
                 Some(c) => c,
                 None => return Vec::new(),
             };
-            match namespaces.list(&ListParams::default()).await {
+            let lp = ListParams::default().timeout(timeout).match_any();
+            match namespaces.list(&lp).await {
                 Ok(n) => {
                     let ns: Vec<String> = n
                         .items
@@ -99,7 +110,7 @@ pub async fn get_namespaces(kubeconfig: Kubeconfig, sep: String) -> Vec<String> 
                     return ns;
                 }
                 Err(_) => {
-                    warn!("The cluster {} is unreachable", cluster_name);
+                    warn!("{} is unreachable", cluster_name);
                     return Vec::new();
                 }
             }
@@ -118,9 +129,10 @@ pub fn get_all_ns(clusters: Vec<Cluster>, sep: String) -> Vec<String> {
             nbcl += 1;
             let tx1 = tx.clone();
             let s = sep.clone();
+            let t = cl.timeout;
             thread::spawn(move || {
                 match Kubeconfig::read_from(cl.kubeconfig_path) {
-                    Ok(k) => tx1.send(get_namespaces(k, s)),
+                    Ok(k) => tx1.send(get_namespaces(k, s, t)),
                     Err(e) => {
                         warn!("{}", e);
                         tx1.send(Vec::new())

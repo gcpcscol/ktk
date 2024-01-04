@@ -103,7 +103,7 @@ impl Context {
                 workdir,
                 prefixns,
                 disabled,
-                timeout,
+                timeout: timeout.try_into().unwrap_or(10),
                 tabcolor: crate::terminal::kitty::Tabcolor {
                     active_bg,
                     inactive_bg,
