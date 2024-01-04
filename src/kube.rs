@@ -6,14 +6,7 @@ use kube::{
 };
 use log::{info, warn};
 use skim::prelude::*;
-use std::{
-    io::Cursor,
-    path::Path,
-    process,
-    process::{Command, Stdio},
-    sync::mpsc,
-    thread,
-};
+use std::{io::Cursor, path::Path, process, sync::mpsc, thread, time::Duration};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cluster {
@@ -26,7 +19,6 @@ pub struct Cluster {
     pub timeout: u32, // maximum time to retrieve the list of namespaces
 }
 
-#[allow(dead_code)]
 pub fn ns_workdir(cluster: &Cluster, namespace: String, kubeconfig: String) -> String {
     if cluster.prefixns.is_empty()
         || namespace.get(..cluster.prefixns.len()).unwrap_or("") != cluster.prefixns
@@ -77,7 +69,10 @@ pub async fn get_namespaces(kubeconfig: Kubeconfig, sep: String, timeout: u32) -
     match get_kubeconfig_option(kubeconfig.clone()) {
         Some(kubeopt) => {
             let config = match Config::from_custom_kubeconfig(kubeconfig, &kubeopt).await {
-                Ok(c) => c,
+                Ok(mut c) => {
+                    c.connect_timeout = Some(Duration::from_secs(timeout.into()));
+                    c
+                }
                 Err(e) => {
                     warn!("{}", e);
                     return Vec::new();
@@ -119,7 +114,6 @@ pub async fn get_namespaces(kubeconfig: Kubeconfig, sep: String, timeout: u32) -
     }
 }
 
-#[allow(unused_must_use)]
 pub fn get_all_ns(clusters: Vec<Cluster>, sep: String) -> Vec<String> {
     let (tx, rx) = mpsc::channel();
     let mut nbcl = 0;
@@ -131,7 +125,7 @@ pub fn get_all_ns(clusters: Vec<Cluster>, sep: String) -> Vec<String> {
             let s = sep.clone();
             let t = cl.timeout;
             thread::spawn(move || {
-                match Kubeconfig::read_from(cl.kubeconfig_path) {
+                let _ = match Kubeconfig::read_from(cl.kubeconfig_path) {
                     Ok(k) => tx1.send(get_namespaces(k, s, t)),
                     Err(e) => {
                         warn!("{}", e);
@@ -142,7 +136,7 @@ pub fn get_all_ns(clusters: Vec<Cluster>, sep: String) -> Vec<String> {
         }
     }
     thread::spawn(move || {
-        tx.send(vec!["".to_string()]);
+        let _ = tx.send(vec!["".to_string()]);
     });
     for rec in rx {
         result.extend(rec);
@@ -150,20 +144,6 @@ pub fn get_all_ns(clusters: Vec<Cluster>, sep: String) -> Vec<String> {
     result.sort();
     info!("{} namespaces found in {} clusters", result.len(), nbcl);
     result
-}
-
-#[allow(dead_code)]
-pub fn get_current_context() -> String {
-    let output = Command::new("kubectl")
-        .args(["config", "current-context"])
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap()
-        .wait_with_output()
-        .unwrap();
-
-    String::from_utf8(output.stdout).unwrap().trim().to_owned()
 }
 
 pub fn selectable_list(input: Vec<String>, query: Option<&str>) -> String {
