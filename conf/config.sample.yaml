@@ -16,7 +16,8 @@ global:
 .kubeconfig: &kubeconfig
   path: "~/.kube/konfigs"
   file: "default"
-  timeout: 20
+  get-timeout-sec: 3
+  connect-timeout-msec: 800
 
 clusters:
   - name: prod
