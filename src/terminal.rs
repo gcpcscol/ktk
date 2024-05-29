@@ -12,6 +12,7 @@ pub struct Tmux {
     context: tmux::Context,
 }
 
+#[allow(dead_code)]
 pub trait Terminal {
     fn good_term(&self) -> bool;
     fn identifier(&self) -> String;
@@ -24,23 +25,38 @@ pub trait Terminal {
 }
 
 pub fn detect() -> Box<dyn Terminal> {
-    match env::var("TERM").unwrap().as_str() {
-        "xterm-kitty" => {
+    let other = "other".to_string();
+    match env::var("TERMINAL").unwrap_or(other.clone()).as_str() {
+        "kitty" => {
             debug!("Kitty terminal");
             Box::new(Kitty {
                 context: kitty::Context::new(),
             })
         }
-        "tmux-256color" => {
+        "tmux" => {
             debug!("Tmux terminal");
             Box::new(Tmux {
                 context: tmux::Context::new(),
             })
         }
-        _ => {
-            error!("Only supports Kitty and Tmux for now.");
-            process::exit(42)
-        }
+        _ => match env::var("TERM_PROGRAM").unwrap_or(other).as_str() {
+            "kitty" => {
+                debug!("Kitty terminal");
+                Box::new(Kitty {
+                    context: kitty::Context::new(),
+                })
+            }
+            "tmux" => {
+                debug!("Tmux terminal");
+                Box::new(Tmux {
+                    context: tmux::Context::new(),
+                })
+            }
+            _ => {
+                error!("Only supports Kitty and Tmux for now.");
+                process::exit(42)
+            }
+        },
     }
 }
 
