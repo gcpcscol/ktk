@@ -1,0 +1,17 @@
+[
+  {
+    "username": "user",
+    "hostname": "vm",
+    "pid": 232651,
+    "connection_elapsed": {
+      "secs": 422,
+      "nanos": 761877114
+    },
+    "idle_time": {
+      "secs": 0,
+      "nanos": 761877114
+    },
+    "workspace": "default",
+    "focused_pane_id": 10
+  }
+]

@@ -1,5 +1,6 @@
 pub mod kitty;
 pub mod tmux;
+pub mod wezterm;
 use std::{env, process};
 
 use log::{debug, error};
@@ -10,6 +11,10 @@ pub struct Kitty {
 
 pub struct Tmux {
     context: tmux::Context,
+}
+
+pub struct WezTerm {
+    context: wezterm::Context,
 }
 
 #[allow(dead_code)]
@@ -26,37 +31,30 @@ pub trait Terminal {
 
 pub fn detect() -> Box<dyn Terminal> {
     let other = "other".to_string();
-    match env::var("TERMINAL").unwrap_or(other.clone()).as_str() {
-        "kitty" => {
-            debug!("Kitty terminal");
-            Box::new(Kitty {
-                context: kitty::Context::new(),
-            })
-        }
+    match env::var("TERM_PROGRAM").unwrap_or(other.clone()).as_str() {
         "tmux" => {
             debug!("Tmux terminal");
             Box::new(Tmux {
                 context: tmux::Context::new(),
             })
         }
-        _ => match env::var("TERM_PROGRAM").unwrap_or(other).as_str() {
-            "kitty" => {
+        "WezTerm" => {
+            debug!("WezTerm terminal");
+            Box::new(WezTerm {
+                context: wezterm::Context::new(),
+            })
+        }
+        _ => {
+            if env::var("TERMINAL").unwrap_or(other) == "kitty" {
                 debug!("Kitty terminal");
                 Box::new(Kitty {
                     context: kitty::Context::new(),
                 })
-            }
-            "tmux" => {
-                debug!("Tmux terminal");
-                Box::new(Tmux {
-                    context: tmux::Context::new(),
-                })
-            }
-            _ => {
-                error!("Only supports Kitty and Tmux for now.");
+            } else {
+                error!("Only supports Kitty, WezTerm and Tmux for now.");
                 process::exit(42)
             }
-        },
+        }
     }
 }
 
@@ -125,6 +123,48 @@ impl Terminal for Tmux {
 
     fn create_new_tab(&mut self, name: &str) {
         self.context.launch_shell_in_new_tab_name(name);
+    }
+
+    fn change_tab_title(&self, name: &str) {
+        self.context.set_tab_title(name);
+    }
+
+    fn change_tab_color(&self, _: kitty::Tabcolor) {}
+}
+
+impl Terminal for WezTerm {
+    fn good_term(&self) -> bool {
+        self.context.good_term()
+    }
+
+    fn identifier(&self) -> String {
+        format!("{}", self.context.platform_window_id())
+    }
+
+    fn id_of_focus_tab(&self) -> Option<String> {
+        self.context.id_of_focus_tab()
+    }
+
+    fn id_path_of_focus_tab(&self) -> Option<String> {
+        self.context
+            .id_path_of_focus_tab()
+            .map(|expr| format!("{}", expr))
+    }
+
+    fn focus_tab_name(&self, name: &str) -> bool {
+        if let Some(id) = self.context.id_tab_with_title(name) {
+            self.context.focus_tab_id(id);
+            return true;
+        }
+        false
+    }
+
+    fn create_new_tab(&mut self, name: &str) {
+        let id_pane = self.context.launch_shell_in_new_tab_name(name);
+        if id_pane.is_some() {
+            self.context.focus_pane_id(id_pane.unwrap());
+            self.context.set_tab_title(name);
+        }
     }
 
     fn change_tab_title(&self, name: &str) {
