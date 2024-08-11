@@ -56,7 +56,8 @@ impl Context {
     }
 
     pub fn refresh(&mut self) {
-        self.value = serde_json::from_reader(weztermls()).unwrap()
+        self.value = serde_json::from_reader(weztermls()).unwrap();
+        self.client = serde_json::from_reader(weztermlsclient()).unwrap();
     }
 
     pub fn platform_window_id(&self) -> i64 {
@@ -172,13 +173,19 @@ impl Context {
             .expect("Failed to set tab title");
     }
 
-    pub fn launch_cmd_in_new_tab_name(
-        &mut self,
-        name: &str,
-        opt: &str,
-        env: &str,
-        cmd: &str,
-    ) -> Option<i64> {
+    #[allow(dead_code)]
+    pub fn set_tab_title_for_pane_id(&self, title: &str, pane_id: &str) {
+        debug!("set_tab_title {}", title);
+        Command::new("wezterm")
+            .arg("cli")
+            .arg("set-tab-title")
+            .arg(title)
+            .arg(format!("--pane-id={}", pane_id))
+            .output()
+            .expect("Failed to set tab title");
+    }
+
+    pub fn launch_cmd_in_new_tab_name(&mut self, name: &str, opt: &str, env: &str, cmd: &str) {
         debug!(
             "launch_cmd_in_new_tab_name name:{:?} opt:{:?} env:{:?} cmd:{:?}",
             name, opt, env, cmd
@@ -190,17 +197,24 @@ impl Context {
             .arg(cmd)
             .output()
             .expect("failed");
+        let opt = format!(
+            "--pane-id={}",
+            String::from_utf8_lossy(&output.stdout)
+                .to_string()
+                .trim_end()
+        );
+        debug!("Execute : wezterm cli set-tab-title {name} {opt}");
+        Command::new("wezterm")
+            .arg("cli")
+            .arg("set-tab-title")
+            .arg(name)
+            .arg(opt)
+            .output()
+            .expect("Failed to set tab title");
         self.refresh();
-        match String::from_utf8_lossy(&output.stdout)
-            .to_string()
-            .parse::<i64>()
-        {
-            Ok(id) => return Some(id),
-            Err(_) => return None,
-        }
     }
 
-    pub fn launch_shell_in_new_tab_name(&mut self, name: &str) -> Option<i64> {
+    pub fn launch_shell_in_new_tab_name(&mut self, name: &str) {
         debug!("launch_shell_in_new_tab_name {}", name);
         self.launch_cmd_in_new_tab_name(
             name,
@@ -209,7 +223,7 @@ impl Context {
             env::var("SHELL")
                 .unwrap_or_else(|_| "/usr/bin/bash".to_string())
                 .as_str(),
-        )
+        );
     }
 
     #[allow(dead_code)]

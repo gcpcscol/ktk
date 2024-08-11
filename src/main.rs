@@ -330,12 +330,16 @@ fn main() -> Result<(), io::Error> {
             clustername = s[1].to_string();
         }
         if !matches.get_flag("tab") {
+            debug!("create new tab {tab}");
             term.create_new_tab(&tab);
         } else {
+            debug!("change tab title {tab}");
             term.change_tab_title(&tab);
         }
         let cl = conf.cluster_by_name(clustername.as_str()).unwrap();
+        debug!("cluster name : {}", clustername.as_str());
         let destkubeconfig = format!("{}/{}", conf.kubetmp, term.identifier());
+        debug!("destination directory for kubeconfig files : {destkubeconfig}");
         term.change_tab_color(cl.tabcolor.clone());
         println!();
         let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig_path.clone()) {
@@ -345,8 +349,11 @@ fn main() -> Result<(), io::Error> {
                 process::exit(6)
             }
         };
+        debug!("change kube context {}", namespace.to_string());
         kcf.change_context(namespace.to_string());
-        kcf.write(destkubeconfig, term.id_of_focus_tab().unwrap());
+        let tab_id = term.id_of_focus_tab().unwrap();
+        debug!("write new kubeconfig in {}/{}", destkubeconfig, tab_id);
+        kcf.write(destkubeconfig, tab_id);
     }
 
     Ok(())

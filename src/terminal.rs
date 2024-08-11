@@ -160,11 +160,7 @@ impl Terminal for WezTerm {
     }
 
     fn create_new_tab(&mut self, name: &str) {
-        let id_pane = self.context.launch_shell_in_new_tab_name(name);
-        if id_pane.is_some() {
-            self.context.focus_pane_id(id_pane.unwrap());
-            self.context.set_tab_title(name);
-        }
+        let _ = self.context.launch_shell_in_new_tab_name(name);
     }
 
     fn change_tab_title(&self, name: &str) {
