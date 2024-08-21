@@ -64,7 +64,7 @@ impl Terminal for Kitty {
     }
 
     fn identifier(&self) -> String {
-        format!("{}", self.context.platform_window_id())
+        format!("kitty-{}", self.context.platform_window_id())
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -74,7 +74,7 @@ impl Terminal for Kitty {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_focus_tab()
-            .map(|expr| format!("{}", expr))
+            .map(|expr| format!("kitty-{}", expr))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
@@ -104,7 +104,7 @@ impl Terminal for Tmux {
     }
 
     fn identifier(&self) -> String {
-        self.context.current_session()
+        format!("tmux-{}", self.context.current_session())
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -114,7 +114,7 @@ impl Terminal for Tmux {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_current_window()
-            .map(|expr| expr.trim_end().to_string())
+            .map(|expr| format!("tmux-{}", expr.trim_end().to_string()))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
@@ -138,7 +138,7 @@ impl Terminal for WezTerm {
     }
 
     fn identifier(&self) -> String {
-        format!("{}", self.context.platform_window_id())
+        format!("wezterm-{}", self.context.platform_window_id())
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -148,7 +148,7 @@ impl Terminal for WezTerm {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_focus_tab()
-            .map(|expr| format!("{}", expr))
+            .map(|expr| format!("wezterm-{}", expr))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
