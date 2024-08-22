@@ -22,6 +22,7 @@ pub trait Terminal {
     fn good_term(&self) -> bool;
     fn identifier(&self) -> String;
     fn id_of_focus_tab(&self) -> Option<String>;
+    fn id_of_tab_name(&self, name: &str) -> Option<String>;
     fn id_path_of_focus_tab(&self) -> Option<String>;
     fn focus_tab_name(&self, name: &str) -> bool;
     fn create_new_tab(&mut self, name: &str);
@@ -57,7 +58,6 @@ pub fn detect() -> Box<dyn Terminal> {
         }
     }
 }
-
 impl Terminal for Kitty {
     fn good_term(&self) -> bool {
         self.context.good_term()
@@ -69,6 +69,10 @@ impl Terminal for Kitty {
 
     fn id_of_focus_tab(&self) -> Option<String> {
         self.context.id_of_focus_tab()
+    }
+
+    fn id_of_tab_name(&self, name: &str) -> Option<String> {
+        self.context.id_tab_with_title(name)
     }
 
     fn id_path_of_focus_tab(&self) -> Option<String> {
@@ -111,6 +115,10 @@ impl Terminal for Tmux {
         self.context.id_of_current_window()
     }
 
+    fn id_of_tab_name(&self, name: &str) -> Option<String> {
+        self.context.id_of_window_name(name)
+    }
+
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_current_window()
@@ -143,6 +151,10 @@ impl Terminal for WezTerm {
 
     fn id_of_focus_tab(&self) -> Option<String> {
         self.context.id_of_focus_tab()
+    }
+
+    fn id_of_tab_name(&self, name: &str) -> Option<String> {
+        self.context.id_tab_with_title(name)
     }
 
     fn id_path_of_focus_tab(&self) -> Option<String> {

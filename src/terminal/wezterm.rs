@@ -86,7 +86,7 @@ impl Context {
     #[allow(dead_code)]
     pub fn id_of_focus_tab(&self) -> Option<String> {
         let pane_id = self.client[0]["focused_pane_id"].as_i64();
-        debug!("id_of_focus_tab => {:?}", pane_id);
+        debug!("id_of_focus_pane => {:?}", pane_id);
         let mut it = 0;
         while self.value[it].is_object() {
             if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
@@ -97,11 +97,10 @@ impl Context {
         return None;
     }
 
-    #[allow(dead_code)]
     pub fn id_path_of_focus_tab(&self) -> Option<IdPath> {
         let win_id = self.platform_window_id();
         let pane_id = self.client[0]["focused_pane_id"].as_i64();
-        debug!("id_of_focus_tab => {:?}", pane_id);
+        debug!("id_of_focus_pane => {:?}", pane_id);
         let mut it = 0;
         while self.value[it].is_object() {
             if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
@@ -125,10 +124,11 @@ impl Context {
     #[allow(dead_code)]
     pub fn title_of_focus_tab(&self) -> Option<String> {
         let pane_id = self.client[0]["focused_pane_id"].as_i64();
-        debug!("id_of_focus_tab => {:?}", pane_id);
+        debug!("id_of_focus_pane => {:?}", pane_id);
         let mut it = 0;
         while self.value[it].is_object() {
             if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
+                debug!("id_of_focus_tab => {:?}", self.value[it]["tab_id"]);
                 return Some(self.value[it]["tab_title"].to_string());
             }
             it += 1;
@@ -137,13 +137,16 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn id_tab_with_title(&self, title: &str) -> Option<i64> {
+    pub fn id_tab_with_title(&self, title: &str) -> Option<String> {
         let mut it = 0;
         while self.value[it]["tab_title"].is_string() {
             if self.value[it]["tab_title"].as_str() == Some(title) {
-                let ret = self.value[it]["tab_id"].as_i64().or(None);
+                let ret = self.value[it]["tab_id"].to_string();
                 debug!("id_tab_with_title => {:?}", ret);
-                return ret;
+                if ret == "" {
+                    return None;
+                }
+                return Some(ret);
             };
             it += 1;
         }
@@ -164,7 +167,7 @@ impl Context {
     }
 
     pub fn set_tab_title(&self, title: &str) {
-        debug!("set_tab_title {}", title);
+        debug!("set_tab_title => {}", title);
         Command::new("wezterm")
             .arg("cli")
             .arg("set-tab-title")
@@ -175,7 +178,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn set_tab_title_for_pane_id(&self, title: &str, pane_id: &str) {
-        debug!("set_tab_title {}", title);
+        debug!("set_tab_title {} for pane_id {}", title, pane_id);
         Command::new("wezterm")
             .arg("cli")
             .arg("set-tab-title")
@@ -197,13 +200,14 @@ impl Context {
             .arg(cmd)
             .output()
             .expect("failed");
-        let opt = format!(
-            "--pane-id={}",
+        let pane_id = format!(
+            "{}",
             String::from_utf8_lossy(&output.stdout)
                 .to_string()
                 .trim_end()
         );
-        debug!("Execute : wezterm cli set-tab-title {name} {opt}");
+        let opt = format!("--pane-id={}", pane_id);
+        debug!("Execute => wezterm cli set-tab-title '{name}' {opt}");
         Command::new("wezterm")
             .arg("cli")
             .arg("set-tab-title")
@@ -211,11 +215,15 @@ impl Context {
             .arg(opt)
             .output()
             .expect("Failed to set tab title");
+        // self.refresh();
+        // if let Some(id) = self.id_tab_with_title(name) {
+        //     self.focus_tab_id(id);
+        // }
         self.refresh();
     }
 
     pub fn launch_shell_in_new_tab_name(&mut self, name: &str) {
-        debug!("launch_shell_in_new_tab_name {}", name);
+        debug!("launch_shell_in_new_tab_name => {}", name);
         self.launch_cmd_in_new_tab_name(
             name,
             "",
@@ -227,8 +235,8 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn focus_tab_id(&self, id: i64) {
-        debug!("focus_tab_id {id}");
+    pub fn focus_tab_id(&self, id: String) {
+        debug!("focus_tab_id => {id}");
         Command::new("wezterm")
             .arg("cli")
             .arg("activate-tab")
@@ -239,7 +247,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn focus_pane_id(&self, id: i64) {
-        debug!("focus_pane_id {id}");
+        debug!("focus_pane_id => {id}");
         Command::new("wezterm")
             .arg("cli")
             .arg("active-pane")
@@ -285,8 +293,8 @@ mod tests {
     fn test_id_tab_with_title() {
         let k = new_from_file();
         assert_eq!(k.id_tab_with_title("error"), None);
-        assert_eq!(k.id_tab_with_title("test"), Some(4));
-        assert_eq!(k.id_tab_with_title("test2"), Some(7));
+        assert_eq!(k.id_tab_with_title("test"), Some("4".to_string()));
+        assert_eq!(k.id_tab_with_title("test2"), Some("7".to_string()));
     }
 
     #[test]

@@ -204,9 +204,11 @@ fn main() -> Result<(), io::Error> {
 
     if matches.get_flag("evaldir") {
         let idpath = term.id_path_of_focus_tab();
+        debug!("idpath : {:?}", idpath);
         if idpath.is_some() {
             let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
             if !Path::new(&kubeconfig).exists() {
+                debug!("file not found : {:?}", kubeconfig);
                 process::exit(1)
             }
             let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
@@ -311,8 +313,8 @@ fn main() -> Result<(), io::Error> {
     // Check if the tab doesn't already exist.
     // If it exists, go to tab,
     // otherwise create a new one.
-    let tab = format!("{}{}", conf.tabprefix, &choice);
-    if term.focus_tab_name(&tab) {
+    let tab_name = format!("{}{}", conf.tabprefix, &choice);
+    if term.focus_tab_name(&tab_name) {
         info!("go to {choice}");
     } else {
         info!("launch {choice}");
@@ -330,16 +332,16 @@ fn main() -> Result<(), io::Error> {
             clustername = s[1].to_string();
         }
         if !matches.get_flag("tab") {
-            debug!("create new tab {tab}");
-            term.create_new_tab(&tab);
+            debug!("create new tab => {tab_name}");
+            term.create_new_tab(&tab_name);
         } else {
-            debug!("change tab title {tab}");
-            term.change_tab_title(&tab);
+            debug!("change tab title => {tab_name}");
+            term.change_tab_title(&tab_name);
         }
         let cl = conf.cluster_by_name(clustername.as_str()).unwrap();
-        debug!("cluster name : {}", clustername.as_str());
+        debug!("cluster name => {}", clustername.as_str());
         let destkubeconfig = format!("{}/{}", conf.kubetmp, term.identifier());
-        debug!("destination directory for kubeconfig files : {destkubeconfig}");
+        debug!("destination directory for kubeconfig files => {destkubeconfig}");
         term.change_tab_color(cl.tabcolor.clone());
         println!();
         let mut kcf = match kubeconfig::Kubeconfig::new(cl.kubeconfig_path.clone()) {
@@ -349,11 +351,20 @@ fn main() -> Result<(), io::Error> {
                 process::exit(6)
             }
         };
-        debug!("change kube context {}", namespace.to_string());
+        debug!("change kube context => {}", namespace.to_string());
         kcf.change_context(namespace.to_string());
-        let tab_id = term.id_of_focus_tab().unwrap();
-        debug!("write new kubeconfig in {}/{}", destkubeconfig, tab_id);
-        kcf.write(destkubeconfig, tab_id);
+        match term.id_of_tab_name(&tab_name) {
+            Some(tab_id) => {
+                debug!("tab_id => {}", tab_id);
+                debug!("write new kubeconfig in {}/{}", destkubeconfig, tab_id);
+                kcf.write(destkubeconfig, tab_id);
+                term.focus_tab_name(&tab_name);
+            }
+            None => {
+                error!("tab not found!");
+                process::exit(1)
+            }
+        }
     }
 
     Ok(())

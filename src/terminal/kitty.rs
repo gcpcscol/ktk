@@ -189,15 +189,18 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn id_tab_with_title(&self, title: &str) -> Option<i64> {
+    pub fn id_tab_with_title(&self, title: &str) -> Option<String> {
         let mut iow = 0;
         while self.value[iow].is_object() {
             let mut it = 0;
             while self.value[iow]["tabs"][it]["title"].is_string() {
                 if self.value[iow]["tabs"][it]["title"].as_str() == Some(title) {
-                    let ret = self.value[iow]["tabs"][it]["id"].as_i64().or(None);
+                    let ret = self.value[iow]["tabs"][it]["id"].to_string();
                     debug!("id_tab_with_title => {:?}", ret);
-                    return ret;
+                    if ret == "" {
+                        return None;
+                    };
+                    return Some(ret);
                 };
                 it += 1;
             }
@@ -306,7 +309,7 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn focus_tab_id(&self, id: i64) {
+    pub fn focus_tab_id(&self, id: String) {
         debug!("focus_tab_id {id}");
         Command::new("kitty")
             .arg("@")
@@ -356,8 +359,8 @@ mod tests {
     fn test_id_tab_with_title() {
         let k = new_from_file();
         assert_eq!(k.id_tab_with_title("error"), None);
-        assert_eq!(k.id_tab_with_title("test"), Some(6));
-        assert_eq!(k.id_tab_with_title("test2"), Some(7));
+        assert_eq!(k.id_tab_with_title("test"), Some("6".to_string()));
+        assert_eq!(k.id_tab_with_title("test2"), Some("7".to_string()));
     }
 
     #[test]
