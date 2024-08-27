@@ -25,6 +25,7 @@ pub trait Terminal {
     fn id_of_tab_name(&self, name: &str) -> Option<String>;
     fn id_path_of_focus_tab(&self) -> Option<String>;
     fn focus_tab_name(&self, name: &str) -> bool;
+    fn focus_execute_tab(&mut self);
     fn create_new_tab(&mut self, name: &str);
     fn change_tab_title(&self, name: &str);
     fn change_tab_color(&self, color: kitty::Tabcolor);
@@ -89,6 +90,10 @@ impl Terminal for Kitty {
         false
     }
 
+    fn focus_execute_tab(&mut self) {
+        self.context.focus_execute_tab();
+    }
+
     fn create_new_tab(&mut self, name: &str) {
         self.context.launch_shell_in_new_tab_name(name);
     }
@@ -128,6 +133,8 @@ impl Terminal for Tmux {
     fn focus_tab_name(&self, name: &str) -> bool {
         self.context.select_window_name(name)
     }
+
+    fn focus_execute_tab(&mut self) {}
 
     fn create_new_tab(&mut self, name: &str) {
         self.context.launch_shell_in_new_tab_name(name);
@@ -169,6 +176,10 @@ impl Terminal for WezTerm {
             return true;
         }
         false
+    }
+
+    fn focus_execute_tab(&mut self) {
+        self.context.focus_execute_pane();
     }
 
     fn create_new_tab(&mut self, name: &str) {

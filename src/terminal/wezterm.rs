@@ -246,6 +246,17 @@ impl Context {
     }
 
     #[allow(dead_code)]
+    pub fn focus_execute_pane(&mut self) {
+        debug!("focus_execute_tab");
+        Command::new("wezterm")
+            .arg("cli")
+            .arg("activate-pane")
+            .output()
+            .expect("Failed to focus tab");
+        self.refresh();
+    }
+
+    #[allow(dead_code)]
     pub fn focus_pane_id(&self, id: i64) {
         debug!("focus_pane_id => {id}");
         Command::new("wezterm")

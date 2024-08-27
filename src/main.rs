@@ -361,8 +361,10 @@ fn main() -> Result<(), io::Error> {
                 term.focus_tab_name(&tab_name);
             }
             None => {
-                error!("tab not found!");
-                process::exit(1)
+                let tab_id = term.id_of_focus_tab().unwrap();
+                debug!("tab_id => {}", tab_id);
+                debug!("write new kubeconfig in {}/{}", destkubeconfig, tab_id);
+                kcf.write(destkubeconfig, tab_id);
             }
         }
     }

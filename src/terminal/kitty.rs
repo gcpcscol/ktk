@@ -321,6 +321,17 @@ impl Context {
     }
 
     #[allow(dead_code)]
+    pub fn focus_execute_tab(&mut self) {
+        debug!("focus_execute_tab");
+        Command::new("kitty")
+            .arg("@")
+            .arg("focus-tab")
+            .output()
+            .expect("Failed to focus tab");
+        self.refresh();
+    }
+
+    #[allow(dead_code)]
     pub fn focus_window_id(&self, id: i64) {
         debug!("focus_window_id {id}");
         Command::new("kitty")
