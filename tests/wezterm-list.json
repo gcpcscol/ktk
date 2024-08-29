@@ -3,7 +3,7 @@
     "window_id": 0,
     "tab_id": 0,
     "pane_id": 0,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 126,
@@ -29,7 +29,7 @@
     "window_id": 0,
     "tab_id": 0,
     "pane_id": 19,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 126,
@@ -55,7 +55,7 @@
     "window_id": 0,
     "tab_id": 4,
     "pane_id": 5,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 253,
@@ -81,7 +81,7 @@
     "window_id": 0,
     "tab_id": 6,
     "pane_id": 8,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 253,
@@ -107,7 +107,7 @@
     "window_id": 0,
     "tab_id": 7,
     "pane_id": 9,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 253,
@@ -133,7 +133,7 @@
     "window_id": 0,
     "tab_id": 8,
     "pane_id": 10,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 253,
@@ -159,7 +159,7 @@
     "window_id": 0,
     "tab_id": 9,
     "pane_id": 11,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 30,
       "cols": 126,
@@ -185,7 +185,7 @@
     "window_id": 0,
     "tab_id": 9,
     "pane_id": 17,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 30,
       "cols": 126,
@@ -211,7 +211,7 @@
     "window_id": 0,
     "tab_id": 9,
     "pane_id": 16,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 30,
       "cols": 253,
@@ -237,7 +237,7 @@
     "window_id": 0,
     "tab_id": 10,
     "pane_id": 12,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 126,
@@ -263,7 +263,7 @@
     "window_id": 0,
     "tab_id": 10,
     "pane_id": 15,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 61,
       "cols": 126,
@@ -289,7 +289,7 @@
     "window_id": 0,
     "tab_id": 11,
     "pane_id": 13,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 30,
       "cols": 253,
@@ -315,7 +315,7 @@
     "window_id": 0,
     "tab_id": 11,
     "pane_id": 14,
-    "workspace": "1",
+    "workspace": "default",
     "size": {
       "rows": 30,
       "cols": 253,

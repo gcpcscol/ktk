@@ -1,4 +1,4 @@
-use log::debug;
+use simplelog::debug;
 use std::env;
 use std::fmt;
 use std::process::{ChildStdout, Command, Stdio};
@@ -11,7 +11,7 @@ pub struct Context {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IdPath {
-    pub win: i64,
+    pub win: String,
     pub tab: i64,
 }
 
@@ -60,8 +60,22 @@ impl Context {
         self.client = serde_json::from_reader(weztermlsclient()).unwrap();
     }
 
-    pub fn platform_window_id(&self) -> i64 {
-        0
+    pub fn platform_window_id(&self) -> String {
+        let pane_id = self.client[0]["focused_pane_id"].as_i64();
+        debug!("id_of_focus_pane => {:?}", pane_id);
+        let mut it = 0;
+        while self.value[it].is_object() {
+            if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
+                let w = self.value[it]["workspace"].to_string();
+                let workspace = w.trim_matches('"');
+                if workspace.is_empty() {
+                    return "default".to_string();
+                }
+                return workspace.to_string();
+            }
+            it += 1;
+        }
+        return "default".to_string();
     }
 
     #[allow(dead_code)]
@@ -317,7 +331,7 @@ mod tests {
     #[test]
     fn test_platform_window_id() {
         let k = new_from_file();
-        assert_eq!(k.platform_window_id(), 0);
+        assert_eq!(k.platform_window_id(), "default");
     }
 
     #[test]
