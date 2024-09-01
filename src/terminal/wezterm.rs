@@ -67,7 +67,15 @@ impl Context {
         while self.value[it].is_object() {
             if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
                 let w = self.value[it]["workspace"].to_string();
-                let workspace = w.trim_matches('"');
+                // replace emoji and space by underscore
+                let wsanitize = w
+                    .chars()
+                    .map(|x| match x.is_alphanumeric() {
+                        true => x,
+                        false => '_',
+                    })
+                    .collect::<String>();
+                let workspace = wsanitize.trim_matches('_');
                 if workspace.is_empty() {
                     return "default".to_string();
                 }
