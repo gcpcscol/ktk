@@ -37,7 +37,7 @@ fn logfile() -> String {
     }
 }
 
-fn main() -> Result<(), io::Error> {
+fn clap_command() -> clap::ArgMatches {
     let after_help: &'static str = color_print::cstr!(
         r#"<bold><green>Examples:</green></bold>
   <dim>$</dim> <bold>ktk kube-system::production</bold>
@@ -48,7 +48,7 @@ fn main() -> Result<(), io::Error> {
         r#"<bold><green>Usage:</green></bold> <bold>ktk</bold> [OPTIONS] [namespace::cluster]"#
     );
 
-    let matches = command!() // requires `cargo` feature
+    command!() // requires `cargo` feature
         .help_template("\
 {before-help}{name} {version}
 {author-with-newline}{about-with-newline}
@@ -140,8 +140,10 @@ fn main() -> Result<(), io::Error> {
         .author(crate_authors!())
         .after_help(after_help)
         .override_usage(override_usage)
-        .get_matches();
+        .get_matches()
+}
 
+fn configlog(activedebug: bool) {
     // Logger
     let conflog = ConfigBuilder::new()
         .set_time_format_custom(format_description!(
@@ -151,7 +153,7 @@ fn main() -> Result<(), io::Error> {
 
     let mut log_level_term = LevelFilter::Warn;
     let mut log_level_file = LevelFilter::Info;
-    if matches.get_flag("debug") {
+    if activedebug {
         log_level_term = LevelFilter::Debug;
         log_level_file = LevelFilter::Debug;
     }
@@ -173,6 +175,16 @@ fn main() -> Result<(), io::Error> {
         ),
     ])
     .unwrap();
+}
+
+fn main() -> Result<(), io::Error> {
+    let matches = clap_command();
+
+    if matches.get_flag("debug") {
+        configlog(true);
+    } else {
+        configlog(false);
+    }
 
     let config_path = match matches.get_one::<PathBuf>("config") {
         Some(v) => v,

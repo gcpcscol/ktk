@@ -1117,7 +1117,7 @@ dependencies = [
 
 [[package]]
 name = "ktk"
-version = "0.16.2"
+version = "0.16.3"
 dependencies = [
  "clap 4.5.16",
  "color-print",
