@@ -177,15 +177,61 @@ fn configlog(activedebug: bool) {
     .unwrap();
 }
 
+fn evaldir(conf: &config::Context) {
+    // For evaldir option, prompt only environnement variable Kubeconfig
+    // and change directory with eval command like this :
+    //
+    // kubedir=$(ktk --evaldir)
+    // if [ "$?" -eq 0 ]; then
+    //   eval "$(echo $kubedir)"
+    // fi
+    let term = terminal::detect();
+    let idpath = term.id_path_of_focus_tab();
+    debug!("idpath : {:?}", idpath);
+    if idpath.is_some() {
+        let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
+        if !Path::new(&kubeconfig).exists() {
+            debug!("file not found : {:?}", kubeconfig);
+            process::exit(1)
+        }
+        let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
+            Ok(v) => v,
+            Err(e) => {
+                error!("Error parsing file {kubeconfig}: {e:?}");
+                process::exit(6)
+            }
+        };
+        let cluster_context = kcf.cluster_context();
+        let namespace_context = kcf.namespace_context();
+        let cluster = match conf.cluster_by_name(&cluster_context) {
+            Some(v) => v,
+            None => {
+                error!(
+                    "Unable to find the cluster name {cluster_context} in the configuration file."
+                );
+                process::exit(7)
+            }
+        };
+
+        println!(
+            "{}",
+            kube::ns_workdir(cluster, namespace_context, kubeconfig)
+        );
+    }
+}
+
 fn main() -> Result<(), io::Error> {
+    // load clap config
     let matches = clap_command();
 
+    // logger loading
     if matches.get_flag("debug") {
         configlog(true);
     } else {
         configlog(false);
     }
 
+    // Checking the presence of the configuration file
     let config_path = match matches.get_one::<PathBuf>("config") {
         Some(v) => v,
         None => {
@@ -203,53 +249,12 @@ fn main() -> Result<(), io::Error> {
     // Load yaml config file
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
 
-    // Load kitty context (kitty @ls)
-    let mut term = terminal::detect();
-
-    // For evaldir option, prompt only environnement variable Kubeconfig
-    // and change directory with eval command like this :
-    //
-    // kubedir=$(ktk --evaldir)
-    // if [ "$?" -eq 0 ]; then
-    //   eval "$(echo $kubedir)"
-    // fi
-
     if matches.get_flag("evaldir") {
-        let idpath = term.id_path_of_focus_tab();
-        debug!("idpath : {:?}", idpath);
-        if idpath.is_some() {
-            let kubeconfig = format!("{}/{}", conf.kubetmp, idpath.unwrap());
-            if !Path::new(&kubeconfig).exists() {
-                debug!("file not found : {:?}", kubeconfig);
-                process::exit(1)
-            }
-            let kcf = match kubeconfig::Kubeconfig::new(kubeconfig.clone()) {
-                Ok(v) => v,
-                Err(e) => {
-                    error!("Error parsing file {kubeconfig}: {e:?}");
-                    process::exit(6)
-                }
-            };
-            let cluster_context = kcf.cluster_context();
-            let namespace_context = kcf.namespace_context();
-            let cluster = match conf.cluster_by_name(&cluster_context) {
-                Some(v) => v,
-                None => {
-                    error!(
-                            "Unable to find the cluster name {cluster_context} in the configuration file."
-                        );
-                    process::exit(7)
-                }
-            };
-
-            println!(
-                "{}",
-                kube::ns_workdir(cluster, namespace_context, kubeconfig)
-            );
-        }
+        evaldir(&conf);
         process::exit(0)
     }
 
+    let mut term = terminal::detect();
     // Initialize user input namespace
     let namespace_search = match matches.get_one::<String>("namespace") {
         Some(v) => v.to_string(),
