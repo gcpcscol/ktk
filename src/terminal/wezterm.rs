@@ -60,6 +60,21 @@ impl Context {
         self.client = serde_json::from_reader(weztermlsclient()).unwrap();
     }
 
+    // Returns the name of the active workspace.
+    pub fn active_workspace(&self) -> String {
+        let pane_id = self.client[0]["focused_pane_id"].as_i64();
+        debug!("id_of_focus_pane => {:?}", pane_id);
+        let mut it = 0;
+        while self.value[it].is_object() {
+            if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
+                return self.value[it]["workspace"].to_string();
+            }
+            it += 1;
+        }
+        return "default".to_string();
+    }
+
+    // Returns the normalize name of the active workspace.
     pub fn platform_window_id(&self) -> String {
         let pane_id = self.client[0]["focused_pane_id"].as_i64();
         debug!("id_of_focus_pane => {:?}", pane_id);
@@ -159,10 +174,13 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn id_tab_with_title(&self, title: &str) -> Option<String> {
+    pub fn id_tab_with_title_in_current_workspace(&self, title: &str) -> Option<String> {
+        let current_workspace = self.active_workspace();
         let mut it = 0;
         while self.value[it]["tab_title"].is_string() {
-            if self.value[it]["tab_title"].as_str() == Some(title) {
+            if self.value[it]["tab_title"].as_str() == Some(title)
+                && self.value[it]["workspace"].to_string() == current_workspace
+            {
                 let ret = self.value[it]["tab_id"].to_string();
                 debug!("id_tab_with_title => {:?}", ret);
                 if ret == "" {
@@ -177,7 +195,7 @@ impl Context {
 
     #[allow(dead_code)]
     pub fn tab_title_exist(&self, title: &str) -> bool {
-        self.id_tab_with_title(title).is_some()
+        self.id_tab_with_title_in_current_workspace(title).is_some()
     }
 
     #[allow(dead_code)]
@@ -325,9 +343,15 @@ mod tests {
     #[test]
     fn test_id_tab_with_title() {
         let k = new_from_file();
-        assert_eq!(k.id_tab_with_title("error"), None);
-        assert_eq!(k.id_tab_with_title("test"), Some("4".to_string()));
-        assert_eq!(k.id_tab_with_title("test2"), Some("7".to_string()));
+        assert_eq!(k.id_tab_with_title_in_current_workspace("error"), None);
+        assert_eq!(
+            k.id_tab_with_title_in_current_workspace("test"),
+            Some("4".to_string())
+        );
+        assert_eq!(
+            k.id_tab_with_title_in_current_workspace("test2"),
+            Some("7".to_string())
+        );
     }
 
     #[test]

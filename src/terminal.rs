@@ -161,7 +161,7 @@ impl Terminal for WezTerm {
     }
 
     fn id_of_tab_name(&self, name: &str) -> Option<String> {
-        self.context.id_tab_with_title(name)
+        self.context.id_tab_with_title_in_current_workspace(name)
     }
 
     fn id_path_of_focus_tab(&self) -> Option<String> {
@@ -171,7 +171,7 @@ impl Terminal for WezTerm {
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
-        if let Some(id) = self.context.id_tab_with_title(name) {
+        if let Some(id) = self.context.id_tab_with_title_in_current_workspace(name) {
             self.context.focus_tab_id(id);
             return true;
         }
