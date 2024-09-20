@@ -10,6 +10,7 @@ mod kubeconfig;
 mod terminal;
 
 use clap::{arg, command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction};
+use regex::bytes::Regex;
 use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::{env, io, process};
@@ -101,6 +102,14 @@ fn clap_command() -> clap::ArgMatches {
                 .long("cluster")
                 .action(clap::ArgAction::SetTrue)
                 .help(format!("Search only in current cluster like kubens (alias kubens=\"{} -t -C\")",crate_name!()))
+        )
+        .arg(
+            Arg::new("subfilter")
+                .short('s')
+                .long("subfilter")
+                .action(clap::ArgAction::Set)
+                .help("Pre-filter on a subset of value with a regexp.")
+                .default_value(".*")
         )
         .arg(
             Arg::new("wait")
@@ -293,6 +302,12 @@ fn main() -> Result<(), io::Error> {
         debug!("Update completion file {}", conf.completion_filename);
         conf.update_completion_file();
     }
+    let subfilterdef = ".*".to_string();
+    let subfilter = matches
+        .get_one::<String>("subfilter")
+        .unwrap_or(&subfilterdef);
+    let regexsubfilter = Regex::new(subfilter).unwrap();
+
     // Show fuzzy search to choose the namespace
     // In kubens mode, we only display the namespace, not the cluster name
     let mut choice = kube::selectable_list(
@@ -302,7 +317,11 @@ fn main() -> Result<(), io::Error> {
                 if matches.get_flag("cluster") {
                     s.ends_with(format!("{}{}", conf.separator, cluster_search.clone()).as_str())
                 } else {
-                    true
+                    if regexsubfilter.captures(s.as_bytes()).is_some() {
+                        true
+                    } else {
+                        false
+                    }
                 }
             })
             .map(|x| {

@@ -1,6 +1,6 @@
 [package]
 name = "ktk"
-version = "0.16.4"
+version = "0.17.0"
 authors = ["https://framagit.org/gauthier/ktk"]
 edition = "2021"
 description = "Kitty Tab for Kubeconfig"
@@ -25,3 +25,4 @@ color-print = "0.3.*"
 tokio = { version = "1.37.*", features = ["full"] }
 kube = { version = "0.90.0", features = ["runtime", "derive","client"] }
 k8s-openapi = { version = "0.21.1", features = ["latest"] }
+regex = "1.10.6"
