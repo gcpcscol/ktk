@@ -109,7 +109,6 @@ fn clap_command() -> clap::ArgMatches {
                 .long("subfilter")
                 .action(clap::ArgAction::Set)
                 .help("Pre-filter on a subset of value with a regexp.")
-                .default_value(".*")
         )
         .arg(
             Arg::new("wait")
@@ -302,11 +301,18 @@ fn main() -> Result<(), io::Error> {
         debug!("Update completion file {}", conf.completion_filename);
         conf.update_completion_file();
     }
-    let subfilterdef = ".*".to_string();
+
+    let subfilter_env = match env::var("KTKSUBFILTER") {
+        Ok(v) => v,
+        Err(_) => ".*".to_string(),
+    };
+    debug!("Env KTKSUBFILTER {}", subfilter_env);
     let subfilter = matches
         .get_one::<String>("subfilter")
-        .unwrap_or(&subfilterdef);
+        .unwrap_or(&subfilter_env);
+    debug!("subfilter {}", subfilter);
     let regexsubfilter = Regex::new(subfilter).unwrap();
+    debug!("regexsubfilter {}", regexsubfilter);
 
     // Show fuzzy search to choose the namespace
     // In kubens mode, we only display the namespace, not the cluster name
