@@ -197,7 +197,7 @@ impl Context {
                 if self.value[iow]["tabs"][it]["title"].as_str() == Some(title) {
                     let ret = self.value[iow]["tabs"][it]["id"].to_string();
                     debug!("id_tab_with_title => {:?}", ret);
-                    if ret == "" {
+                    if ret.is_empty() {
                         return None;
                     };
                     return Some(ret);

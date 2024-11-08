@@ -71,7 +71,7 @@ impl Context {
             }
             it += 1;
         }
-        return "default".to_string();
+        "default".to_string()
     }
 
     // Returns the normalize name of the active workspace.
@@ -98,7 +98,7 @@ impl Context {
             }
             it += 1;
         }
-        return "default".to_string();
+        "default".to_string()
     }
 
     #[allow(dead_code)]
@@ -131,7 +131,7 @@ impl Context {
             }
             it += 1;
         }
-        return None;
+        None
     }
 
     pub fn id_path_of_focus_tab(&self) -> Option<IdPath> {
@@ -155,7 +155,7 @@ impl Context {
     pub fn id_of_focus_pane(&self) -> Option<String> {
         let ret = Some(self.client[0]["focused_pane_id"].to_string());
         debug!("id_of_focus_pane => {:?}", ret);
-        return ret;
+        ret
     }
 
     #[allow(dead_code)]
@@ -170,7 +170,7 @@ impl Context {
             }
             it += 1;
         }
-        return None;
+        None
     }
 
     #[allow(dead_code)]
@@ -179,11 +179,11 @@ impl Context {
         let mut it = 0;
         while self.value[it]["tab_title"].is_string() {
             if self.value[it]["tab_title"].as_str() == Some(title)
-                && self.value[it]["workspace"].to_string() == current_workspace
+                && self.value[it]["workspace"] == current_workspace
             {
                 let ret = self.value[it]["tab_id"].to_string();
                 debug!("id_tab_with_title => {:?}", ret);
-                if ret == "" {
+                if ret.is_empty() {
                     return None;
                 }
                 return Some(ret);
@@ -240,12 +240,10 @@ impl Context {
             .arg(cmd)
             .output()
             .expect("failed");
-        let pane_id = format!(
-            "{}",
-            String::from_utf8_lossy(&output.stdout)
-                .to_string()
-                .trim_end()
-        );
+        let pane_id = String::from_utf8_lossy(&output.stdout)
+            .to_string()
+            .trim_end()
+            .to_string();
         let opt = format!("--pane-id={}", pane_id);
         debug!("Execute => wezterm cli set-tab-title '{name}' {opt}");
         Command::new("wezterm")

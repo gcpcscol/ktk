@@ -127,7 +127,7 @@ impl Terminal for Tmux {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_current_window()
-            .map(|expr| format!("tmux-{}", expr.trim_end().to_string()))
+            .map(|expr| format!("tmux-{}", expr.trim_end()))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
@@ -183,7 +183,7 @@ impl Terminal for WezTerm {
     }
 
     fn create_new_tab(&mut self, name: &str) {
-        let _ = self.context.launch_shell_in_new_tab_name(name);
+        self.context.launch_shell_in_new_tab_name(name);
     }
 
     fn change_tab_title(&self, name: &str) {

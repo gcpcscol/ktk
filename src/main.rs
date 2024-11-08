@@ -323,11 +323,7 @@ fn main() -> Result<(), io::Error> {
                 if matches.get_flag("cluster") {
                     s.ends_with(format!("{}{}", conf.separator, cluster_search.clone()).as_str())
                 } else {
-                    if regexsubfilter.captures(s.as_bytes()).is_some() {
-                        true
-                    } else {
-                        false
-                    }
+                    regexsubfilter.captures(s.as_bytes()).is_some()
                 }
             })
             .map(|x| {
