@@ -144,14 +144,3 @@ impl Context {
             .expect("Failed to launch tmux window");
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::Context;
-
-    #[test]
-    fn get_current_session() {
-        let t = Context::new();
-        assert_eq!(t.current_session(), "0");
-    }
-}

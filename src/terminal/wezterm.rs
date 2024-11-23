@@ -67,7 +67,10 @@ impl Context {
         let mut it = 0;
         while self.value[it].is_object() {
             if self.value[it]["pane_id"].as_i64().or(None) == pane_id {
-                return self.value[it]["workspace"].to_string();
+                return self.value[it]["workspace"]
+                    .to_string()
+                    .trim_matches('"')
+                    .to_string();
             }
             it += 1;
         }
@@ -368,5 +371,11 @@ mod tests {
     fn test_tabs_id() {
         let k = new_from_file();
         assert_eq!(k.tabs_id(), vec![0, 4, 6, 7, 8, 9, 10, 11]);
+    }
+
+    #[test]
+    fn test_active_workspace() {
+        let k = new_from_file();
+        assert_eq!(k.active_workspace(), "default");
     }
 }
