@@ -10,7 +10,7 @@ mod kubeconfig;
 mod terminal;
 
 use clap::{
-    arg, command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction, ValueHint,
+    command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction, ValueHint,
 };
 use clap_complete::aot::{generate, Generator, Shell};
 use regex::bytes::Regex;
@@ -41,7 +41,7 @@ fn logfile() -> String {
     }
 }
 
-fn clap_command(pns: Vec<String>) -> clap::Command {
+fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
     let after_help: &'static str = color_print::cstr!(
         r#"<bold><green>Examples:</green></bold>
   <dim>$</dim> <bold>ktk kube-system::production</bold>
@@ -66,18 +66,23 @@ fn clap_command(pns: Vec<String>) -> clap::Command {
             crate_name!()
         ))
         .arg_required_else_help(true)
-        .arg(arg!(
-            [namespace] "Namespace to operate on"
+        .arg(
+            Arg::new("namespace")
+                .required_unless_present_any(["force","evaldir","cluster","completion"])
+                .value_parser(pnsinc)
+                .hide(true)
         )
-            .required_unless_present_any(["force","evaldir","cluster","completion"])
-            .value_hint(ValueHint::Other)
-            .hide(true)
+        .arg(
+            Arg::new("namespace")
+                .required_unless_present_any(["force","evaldir","cluster","completion"])
+                .value_parser(pns)
+                .hide(true)
         )
-        .arg(arg!(
-            [namespace] "Namespace to operate on"
-        )
-            .required_unless_present_any(["force","evaldir","cluster","completion"])
-            .value_parser(pns)
+        .arg(
+            Arg::new("namespace")
+                .help("Namespace to operate on")
+                .required_unless_present_any(["force","evaldir","cluster","completion"])
+                .value_hint(ValueHint::Other)
         )
         .arg(
             Arg::new("config")
@@ -137,7 +142,7 @@ fn clap_command(pns: Vec<String>) -> clap::Command {
                 .long("tab")
                 .action(clap::ArgAction::SetTrue)
                 .help("Change namespace without change tab (like kubens)")
-                .conflicts_with_all(["evaldir", "completion"]),
+                .conflicts_with_all(["evaldir"]),
         )
         .arg(
             Arg::new("debug")
@@ -160,7 +165,7 @@ fn clap_command(pns: Vec<String>) -> clap::Command {
             Arg::new("completion")
                .long("completion")
                .action(clap::ArgAction::Set)
-               .help("Output shell completion code for the specified shell (bash, zsh, fish, elvish or powershell)")
+               .help("Output shell completion code for the specified shell")
                .conflicts_with_all(["namespace"])
                .value_parser(clap::value_parser!(Shell)),
         )
@@ -252,40 +257,30 @@ fn evaldir(conf: &config::Context) {
     }
 }
 
-fn possible_namespaces(
-    conf: config::Context,
-    regexsubfilter: Regex,
-    cluster_action: bool,
-    cluster_search: String,
-) -> Vec<String> {
+fn possible_namespaces_in_context(conf: config::Context, cluster_search: String) -> Vec<String> {
     conf.read_completion_file()
         .split('\n')
-        .filter(|s| {
-            if cluster_action {
-                s.ends_with(format!("{}{}", conf.separator, cluster_search.clone()).as_str())
-            } else {
-                regexsubfilter.captures(s.as_bytes()).is_some()
-            }
-        })
-        .map(|x| {
-            if !cluster_action {
-                x.to_string()
-            } else {
-                match x
-                    .strip_suffix(format!("{}{}", conf.separator, cluster_search.clone()).as_str())
-                {
-                    Some(v) => v.to_string(),
-                    None => "".to_string(),
-                }
-            }
-        })
+        .filter(|s| s.ends_with(format!("{}{}", conf.separator, cluster_search.clone()).as_str()))
+        .map(
+            |x| match x.strip_suffix(format!("{}{}", conf.separator, cluster_search).as_str()) {
+                Some(v) => v.to_string(),
+                None => "".to_string(),
+            },
+        )
+        .collect()
+}
+
+fn possible_namespaces(conf: config::Context, regexsubfilter: Regex) -> Vec<String> {
+    conf.read_completion_file()
+        .split('\n')
+        .filter(|s| regexsubfilter.captures(s.as_bytes()).is_some())
+        .map(|x| x.to_string())
         .collect()
 }
 
 fn main() -> Result<(), io::Error> {
     // load clap config
-    let emptyvec = Vec::new();
-    let matches = clap_command(emptyvec).get_matches();
+    let matches = clap_command(Vec::new(), Vec::new()).get_matches();
 
     // logger loading
     if matches.get_flag("debug") {
@@ -327,7 +322,7 @@ fn main() -> Result<(), io::Error> {
     let mut cluster_search = "".to_string();
 
     // Get current cluster context
-    if matches.get_flag("cluster") {
+    if matches.get_flag("cluster") || matches.contains_id("completion") {
         debug!("Get current cluster context");
         let kc = match env::var("KUBECONFIG") {
             Ok(v) => v,
@@ -370,34 +365,36 @@ fn main() -> Result<(), io::Error> {
     debug!("regexsubfilter {}", regexsubfilter);
 
     if let Some(generator) = matches.get_one::<Shell>("completion").copied() {
-        let pns = possible_namespaces(
-            conf.clone(),
-            regexsubfilter,
-            matches.get_flag("cluster"),
-            cluster_search.clone(),
-        );
-        let mut cmd = clap_command(pns);
+        let pns = possible_namespaces(conf.clone(), regexsubfilter);
+        debug!("cluster_search {:?}", cluster_search);
+        let pnsinc = possible_namespaces_in_context(conf.clone(), cluster_search.clone());
+        debug!("pnsinc {:?}", pnsinc);
+        let mut cmd = clap_command(pns, pnsinc);
         print_completions(generator, &mut cmd);
         process::exit(0)
     }
 
     // Show fuzzy search to choose the namespace
     // In kubens mode, we only display the namespace, not the cluster name
-    let mut choice = kube::selectable_list(
-        possible_namespaces(
-            conf.clone(),
-            regexsubfilter,
-            matches.get_flag("cluster"),
-            cluster_search.clone(),
-        ),
-        Some(namespace_search.as_str()),
-    );
+    let choice = if matches.get_flag("cluster") {
+        format!(
+            "{}{}{}",
+            kube::selectable_list(
+                possible_namespaces_in_context(conf.clone(), cluster_search.clone()),
+                Some(namespace_search.as_str()),
+            ),
+            conf.separator,
+            cluster_search
+        )
+    } else {
+        kube::selectable_list(
+            possible_namespaces(conf.clone(), regexsubfilter),
+            Some(namespace_search.as_str()),
+        )
+    };
     if choice.is_empty() {
         debug!("Empty choice");
         process::exit(130);
-    }
-    if matches.get_flag("cluster") {
-        choice = format!("{}{}{}", choice, conf.separator, cluster_search);
     }
     // Check if the tab doesn't already exist.
     // If it exists, go to tab,
