@@ -70,6 +70,13 @@ fn clap_command(pns: Vec<String>) -> clap::Command {
             [namespace] "Namespace to operate on"
         )
             .required_unless_present_any(["force","evaldir","cluster","completion"])
+            .value_hint(ValueHint::Other)
+            .hide(true)
+        )
+        .arg(arg!(
+            [namespace] "Namespace to operate on"
+        )
+            .required_unless_present_any(["force","evaldir","cluster","completion"])
             .value_parser(pns)
         )
         .arg(
@@ -153,7 +160,8 @@ fn clap_command(pns: Vec<String>) -> clap::Command {
             Arg::new("completion")
                .long("completion")
                .action(clap::ArgAction::Set)
-               .conflicts_with_all(["namespace", "force", "tab", "wait", "noscan","cluster"])
+               .help("Output shell completion code for the specified shell (bash, zsh, fish, elvish or powershell)")
+               .conflicts_with_all(["namespace"])
                .value_parser(clap::value_parser!(Shell)),
         )
         .version(crate_version!())
