@@ -68,21 +68,21 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
         .arg_required_else_help(true)
         .arg(
             Arg::new("namespace")
-                .required_unless_present_any(["force","evaldir","cluster","completion"])
-                .value_parser(pnsinc)
-                .hide(true)
-        )
-        .arg(
-            Arg::new("namespace")
-                .required_unless_present_any(["force","evaldir","cluster","completion"])
-                .value_parser(pns)
-                .hide(true)
-        )
-        .arg(
-            Arg::new("namespace")
                 .help("Namespace to operate on")
                 .required_unless_present_any(["force","evaldir","cluster","completion"])
                 .value_hint(ValueHint::Other)
+        )
+        .arg(
+            Arg::new("namespace-in-current-context")
+                .value_parser(pnsinc)
+                .required(false)
+                .hide(true)
+        )
+        .arg(
+            Arg::new("namespace-in-all-context")
+                .value_parser(pns)
+                .required(false)
+                .hide(true)
         )
         .arg(
             Arg::new("config")
@@ -324,22 +324,26 @@ fn main() -> Result<(), io::Error> {
     // Get current cluster context
     if matches.get_flag("cluster") || matches.contains_id("completion") {
         debug!("Get current cluster context");
-        let kc = match env::var("KUBECONFIG") {
-            Ok(v) => v,
+        match env::var("KUBECONFIG") {
+            Ok(kc) => {
+                cluster_search = match kubeconfig::Kubeconfig::new(kc.clone()) {
+                    Ok(v) => v.cluster_context(),
+                    Err(e) => {
+                        if !matches.contains_id("completion") {
+                            error!("error parsing file {}: {e:?}", kc);
+                            process::exit(6);
+                        }
+                        "".to_string()
+                    }
+                };
+            }
             Err(_) => {
                 error!("No kubeconfig");
-                process::exit(1)
+                if !matches.contains_id("completion") {
+                    process::exit(1)
+                }
             }
         };
-
-        let kcf = match kubeconfig::Kubeconfig::new(kc.clone()) {
-            Ok(v) => v,
-            Err(e) => {
-                error!("error parsing file {}: {e:?}", kc);
-                process::exit(6)
-            }
-        };
-        cluster_search = kcf.cluster_context();
     }
 
     // Check if the completion file must be update
@@ -366,9 +370,7 @@ fn main() -> Result<(), io::Error> {
 
     if let Some(generator) = matches.get_one::<Shell>("completion").copied() {
         let pns = possible_namespaces(conf.clone(), regexsubfilter);
-        debug!("cluster_search {:?}", cluster_search);
         let pnsinc = possible_namespaces_in_context(conf.clone(), cluster_search.clone());
-        debug!("pnsinc {:?}", pnsinc);
         let mut cmd = clap_command(pns, pnsinc);
         print_completions(generator, &mut cmd);
         process::exit(0)
