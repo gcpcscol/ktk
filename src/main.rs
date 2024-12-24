@@ -383,7 +383,7 @@ fn main() -> Result<(), io::Error> {
             "{}{}{}",
             kube::selectable_list(
                 possible_namespaces_in_context(conf.clone(), cluster_search.clone()),
-                Some(namespace_search.as_str()),
+                Some(namespace_search),
             ),
             conf.separator,
             cluster_search
@@ -391,7 +391,7 @@ fn main() -> Result<(), io::Error> {
     } else {
         kube::selectable_list(
             possible_namespaces(conf.clone(), regexsubfilter),
-            Some(namespace_search.as_str()),
+            Some(namespace_search),
         )
     };
     if choice.is_empty() {

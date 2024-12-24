@@ -54,7 +54,7 @@ pub fn get_kubeconfig_option(kubeconfig: Kubeconfig) -> Option<KubeConfigOptions
                     return Some(KubeConfigOptions {
                         context: kubeconfig.current_context,
                         cluster: Some(context.cluster),
-                        user: Some(context.user),
+                        user: context.user,
                     });
                 }
                 None => return None,
@@ -146,15 +146,15 @@ pub fn get_all_ns(clusters: Vec<Cluster>, sep: String) -> Vec<String> {
     result
 }
 
-pub fn selectable_list(input: Vec<String>, query: Option<&str>) -> String {
-    if input.contains(&query.unwrap().to_string()) {
+pub fn selectable_list(input: Vec<String>, query: Option<String>) -> String {
+    if input.contains(&query.clone().unwrap().to_string()) {
         return query.unwrap().to_string();
     };
     let input: Vec<String> = input.into_iter().rev().collect();
     let options = SkimOptionsBuilder::default()
         .multi(false)
         .query(query)
-        .select1(false)
+        .select_1(false)
         .build()
         .unwrap();
     let item_reader = SkimItemReader::default();
