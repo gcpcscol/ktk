@@ -69,7 +69,7 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
         .arg(
             Arg::new("namespace")
                 .help("Namespace to operate on")
-                .required_unless_present_any(["force","evaldir","cluster","completion"])
+                .required_unless_present_any(["force","evaldir","cluster","completion","list-clusters"])
                 .value_hint(ValueHint::Other)
         )
         .arg(
@@ -119,6 +119,13 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
                 .long("cluster")
                 .action(clap::ArgAction::SetTrue)
                 .help(format!("Search only in current cluster like kubens (alias kubens=\"{} -t -C\")",crate_name!()))
+        )
+        .arg(
+            Arg::new("list-clusters")
+                .short('l')
+                .long("list-clusters")
+                .action(clap::ArgAction::SetTrue)
+                .help("List kube clusters in config file")
         )
         .arg(
             Arg::new("subfilter")
@@ -240,7 +247,7 @@ fn evaldir(conf: &config::Context) {
         };
         let cluster_context = kcf.cluster_context();
         let namespace_context = kcf.namespace_context();
-        let cluster = match conf.cluster_by_name(&cluster_context) {
+        let cluster = match conf.cluster_named(&cluster_context) {
             Some(v) => v,
             None => {
                 error!(
@@ -254,6 +261,17 @@ fn evaldir(conf: &config::Context) {
             "{}",
             kube::ns_workdir(cluster, namespace_context, kubeconfig)
         );
+    }
+}
+
+fn list_clusters(conf: &config::Context) {
+    let clusters = conf.clusters.clone();
+    let mut i = 0;
+    for cl in clusters.iter() {
+        if cl.disabled == false {
+            i = i + 1;
+            println!("{i:>4} - {}", cl.name)
+        }
     }
 }
 
@@ -306,6 +324,11 @@ fn main() -> Result<(), io::Error> {
 
     // Load yaml config file
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
+
+    if matches.get_flag("list-clusters") {
+        list_clusters(&conf);
+        process::exit(0)
+    }
 
     if matches.get_flag("evaldir") {
         evaldir(&conf);
@@ -426,7 +449,7 @@ fn main() -> Result<(), io::Error> {
             debug!("change tab title => {tab_name}");
             term.change_tab_title(&tab_name);
         }
-        let cl = conf.cluster_by_name(clustername.as_str()).unwrap();
+        let cl = conf.cluster_named(clustername.as_str()).unwrap();
         debug!("cluster name => {}", clustername.as_str());
         let destkubeconfig = format!("{}/{}", conf.kubetmp, term.identifier());
         debug!("destination directory for kubeconfig files => {destkubeconfig}");

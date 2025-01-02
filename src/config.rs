@@ -126,15 +126,19 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn clusters_name(&self) -> Vec<String> {
+    pub fn clusters_names(&self) -> Vec<String> {
+        // returns the list of cluster names
         let mut vec = Vec::new();
         for cl in self.clusters.clone() {
-            vec.push(cl.name)
+            if cl.disabled == false {
+                vec.push(cl.name)
+            }
         }
         vec
     }
 
-    pub fn cluster_by_name(&self, search_name: &str) -> Option<&Cluster> {
+    pub fn cluster_named(&self, search_name: &str) -> Option<&Cluster> {
+        // returns the cluster with name search_name
         self.clusters.iter().find(|&c| c.name == search_name)
     }
 
@@ -238,17 +242,17 @@ mod tests {
     fn test_clusters_name() {
         let path = PathBuf::from("./conf/config.sample.yaml");
         let conf = Context::new(&path, false);
-        assert_eq!(conf.clusters_name(), vec!["prod", "dev", "test"]);
+        assert_eq!(conf.clusters_names(), vec!["prod", "dev"]);
     }
 
     #[test]
     fn test_cluster_by_name() {
         let path = PathBuf::from("./conf/config.sample.yaml");
         let conf = Context::new(&path, false);
-        assert_eq!(conf.cluster_by_name("fault"), None);
-        assert_ne!(conf.cluster_by_name("prod"), None);
+        assert_eq!(conf.cluster_named("fault"), None);
+        assert_ne!(conf.cluster_named("prod"), None);
         assert_eq!(
-            conf.cluster_by_name("prod"),
+            conf.cluster_named("prod"),
             Some(&Cluster {
                 name: "prod".to_string(),
                 kubeconfig_path: "~/.kube/konfigs/prod".to_string(),
@@ -264,7 +268,7 @@ mod tests {
                 }
             })
         );
-        let c1 = conf.cluster_by_name("dev").unwrap();
+        let c1 = conf.cluster_named("dev").unwrap();
         assert_eq!(c1.workdir, "~/deploy/deploy_env_dev");
     }
 }
