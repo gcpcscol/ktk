@@ -1,14 +1,21 @@
 [package]
 name = "ktk"
 version = "0.19.3"
-authors = ["https://framagit.org/gauthier/ktk"]
+authors = ["Gauthier C. <gc@pc-scol.fr>"]
+homepage = "https://framagit.org/gauthier/ktk"
+repository = "https://github.com/gcpcscol/ktk"
 edition = "2021"
 description = "Kitty Tab for Kubeconfig"
 license = "MIT"
 readme = "README.adoc"
-categories = ["command-line-utilities"]
+categories = ["command-line-utilities","caching"]
+keywords = ["kubernetes", "cli", "kitty", "wezterm", "tmux"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "ktk"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.*", features = ["cargo", "string"] }
@@ -25,5 +32,5 @@ color-print = "0.3.*"
 tokio = { version = "1.37.*", features = ["full"] }
 kube = { version = "0.98.*", features = ["runtime", "derive","client"] }
 k8s-openapi = { version = "0.24.*", features = ["latest"] }
-regex = "1.10.6"
-clap_complete = "4.5.38"
+regex = "1.11.*"
+clap_complete = "4.5.*"
