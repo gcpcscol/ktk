@@ -69,7 +69,7 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
         .arg(
             Arg::new("namespace")
                 .help("Namespace to operate on")
-                .required_unless_present_any(["force","evaldir","cluster","completion","list-clusters"])
+                .required_unless_present_any(["force","evaldir","cluster","completion","list-clusters-colors","list-clusters-names"])
                 .value_hint(ValueHint::Other)
         )
         .arg(
@@ -121,11 +121,19 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
                 .help(format!("Search only in current cluster like kubens (alias kubens=\"{} -t -C\")",crate_name!()))
         )
         .arg(
-            Arg::new("list-clusters")
+            Arg::new("list-clusters-colors")
                 .short('l')
-                .long("list-clusters")
+                .long("list-clusters-colors")
                 .action(clap::ArgAction::SetTrue)
-                .help("List kube clusters in config file")
+                .help("List kube clusters with tabs colors in config file")
+                .conflicts_with_all(["list-clusters-names"]),
+        )
+        .arg(
+            Arg::new("list-clusters-names")
+                .short('L')
+                .long("list-clusters-names")
+                .action(clap::ArgAction::SetTrue)
+                .help("List kube clusters names in config file")
         )
         .arg(
             Arg::new("subfilter")
@@ -314,8 +322,13 @@ fn main() -> Result<(), io::Error> {
     // Load yaml config file
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
 
-    if matches.get_flag("list-clusters") {
-        conf.list_clusters();
+    if matches.get_flag("list-clusters-names") {
+        conf.list_clusters_names();
+        process::exit(0)
+    }
+
+    if matches.get_flag("list-clusters-colors") {
+        conf.list_clusters_colors();
         process::exit(0)
     }
 

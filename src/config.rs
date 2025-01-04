@@ -252,7 +252,19 @@ impl Context {
     }
 
     #[allow(dead_code)]
-    pub fn list_clusters(&self) {
+    pub fn list_clusters_names(&self) {
+        // displays the list of clusters names
+        for cl in self.clusters.clone() {
+            if cl.disabled {
+                println!("{}*", cl.name);
+            } else {
+                println!("{}", cl.name);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn list_clusters_colors(&self) {
         // displays the list of clusters with their colour
         let (nbactive, nbinactive) = self.nb_clusters();
         if nbactive > 0 {
