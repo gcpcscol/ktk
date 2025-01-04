@@ -1,6 +1,7 @@
 //! Read ktk yaml file and load Context
 use crate::kube::{self, Cluster};
 use clap::crate_name;
+use palette::Darken;
 use serde_yaml::Value;
 
 use std::fs;
@@ -12,6 +13,7 @@ use std::time::SystemTime;
 
 use log::{error, info};
 use owo_colors::OwoColorize;
+use palette::{color_difference::Wcag21RelativeContrast, Srgb};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Context {
@@ -22,6 +24,29 @@ pub struct Context {
     pub maxage: u64,
     pub tabprefix: String,
     pub clusters: Vec<Cluster>,
+}
+
+pub fn select_contrasting_fg_color(hexcolor: &str, active: bool) -> String {
+    let col = csscolorparser::parse(hexcolor).unwrap_or_default();
+    if active {
+        let fg = csscolorparser::parse("#FFFFFF").unwrap();
+        let fg_active: Srgb<f32> = Srgb::new(fg.r, fg.g, fg.b).into_format();
+        let background: Srgb<f32> = Srgb::new(col.r, col.g, col.b).into_format();
+        if background.has_min_contrast_large_text(fg_active) {
+            return "#FFFFFF".to_string();
+        } else {
+            return "#000000".to_string();
+        }
+    } else {
+        let fg = csscolorparser::parse("#DDDDDD").unwrap();
+        let fg_active: Srgb<f32> = Srgb::new(fg.r, fg.g, fg.b).into_format();
+        let background: Srgb<f32> = Srgb::new(col.r, col.g, col.b).into_format();
+        if background.has_min_contrast_large_text(fg_active) {
+            return "#DDDDDD".to_string();
+        } else {
+            return "#222222".to_string();
+        }
+    }
 }
 
 impl Context {
@@ -91,9 +116,15 @@ impl Context {
             );
             let prefixns = value_string(&cfg["clusters"][i]["workdir"]["prefixns"], "");
             let active_bg = value_string(&cfg["clusters"][i]["kitty"]["tabactivebg"], "NONE");
-            let inactive_bg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivebg"], "NONE");
-            let active_fg = value_string(&cfg["clusters"][i]["kitty"]["tabactivefg"], "NONE");
-            let inactive_fg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivefg"], "NONE");
+            //let inactive_bg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivebg"], "NONE");
+            let bg = csscolorparser::parse(active_bg.as_str())
+                .unwrap_or_default()
+                .to_linear_rgba();
+            let inac_bg: Srgb<u8> =
+                Darken::darken(Srgb::new(bg.0, bg.1, bg.2), 0.01).into_format::<u8>();
+            let inactive_bg = format!("{:x}", inac_bg);
+            let active_fg = select_contrasting_fg_color(&active_bg, true);
+            let inactive_fg = select_contrasting_fg_color(&inactive_bg, false);
             let disabled = cfg["clusters"][i]["disabled"].as_bool().unwrap_or(false);
             let timeout = cfg["clusters"][i]["kubeconfig"]["timeout"]
                 .as_u64()
@@ -165,17 +196,27 @@ impl Context {
         for cl in clusters.iter() {
             if cl.disabled != active {
                 i += 1;
-                let act_bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
+                let bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
                     .unwrap_or_default()
                     .to_linear_rgba_u8();
-                let act_fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
+                let fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
+                    .unwrap_or_default()
+                    .to_linear_rgba_u8();
+                let inbg = csscolorparser::parse(cl.tabcolor.inactive_bg.as_str())
+                    .unwrap_or_default()
+                    .to_linear_rgba_u8();
+                let infg = csscolorparser::parse(cl.tabcolor.inactive_fg.as_str())
                     .unwrap_or_default()
                     .to_linear_rgba_u8();
                 println!(
-                    "{i:>4} - {}",
+                    "{i:>4} - {} -> inactive tab: {}",
                     cl.name
-                        .on_truecolor(act_bg.0, act_bg.1, act_bg.2)
-                        .truecolor(act_fg.0, act_fg.1, act_fg.2)
+                        .on_truecolor(bg.0, bg.1, bg.2)
+                        .truecolor(fg.0, fg.1, fg.2),
+                    cl.name
+                        .on_truecolor(inbg.0, inbg.1, inbg.2)
+                        .truecolor(infg.0, infg.1, infg.2)
+                        .italic()
                 )
             }
         }
