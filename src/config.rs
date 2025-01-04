@@ -11,6 +11,7 @@ use std::process;
 use std::time::SystemTime;
 
 use log::{error, info};
+use owo_colors::OwoColorize;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Context {
@@ -130,7 +131,7 @@ impl Context {
         // returns the list of cluster names
         let mut vec = Vec::new();
         for cl in self.clusters.clone() {
-            if cl.disabled == false {
+            if !cl.disabled {
                 vec.push(cl.name)
             }
         }
@@ -140,6 +141,62 @@ impl Context {
     pub fn cluster_named(&self, search_name: &str) -> Option<&Cluster> {
         // returns the cluster with name search_name
         self.clusters.iter().find(|&c| c.name == search_name)
+    }
+
+    #[allow(dead_code)]
+    pub fn list_cluster(&self) {
+        // displays the list of clusters with their colour
+        let clusters = self.clusters.clone();
+        let mut i = 0;
+        let mut listactive = Vec::new();
+        let mut listinactive = Vec::new();
+        for cl in clusters.iter() {
+            if !cl.disabled {
+                i += 1;
+                let act_bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
+                    .unwrap_or_default()
+                    .to_linear_rgba_u8();
+                let act_fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
+                    .unwrap_or_default()
+                    .to_linear_rgba_u8();
+                listactive.push(format!(
+                    "{i:>4} - {}",
+                    cl.name
+                        .on_truecolor(act_bg.0, act_bg.1, act_bg.2)
+                        .truecolor(act_fg.0, act_fg.1, act_fg.2)
+                ))
+            }
+        }
+        if !listactive.is_empty() {
+            println!("List of active clusters:");
+            for l in listactive.iter() {
+                println!("{l}")
+            }
+        }
+        i = 0;
+        for cl in clusters.iter() {
+            if cl.disabled {
+                i += 1;
+                let act_bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
+                    .unwrap_or_default()
+                    .to_linear_rgba_u8();
+                let act_fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
+                    .unwrap_or_default()
+                    .to_linear_rgba_u8();
+                listinactive.push(format!(
+                    "{i:>4} - {}",
+                    cl.name
+                        .on_truecolor(act_bg.0, act_bg.1, act_bg.2)
+                        .truecolor(act_fg.0, act_fg.1, act_fg.2)
+                ))
+            }
+        }
+        if !listinactive.is_empty() {
+            println!("List of inactive clusters:");
+            for l in listinactive.iter() {
+                println!("{l}")
+            }
+        }
     }
 
     #[allow(dead_code)]

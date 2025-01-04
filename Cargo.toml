@@ -29,6 +29,8 @@ skim = "0.15.*"
 simplelog = { version = "0.12.*", features = ["paris"] }
 log = "0.4.*"
 color-print = "0.3.*"
+owo-colors = "4"
+csscolorparser = "0.6.2"
 tokio = { version = "1.37.*", features = ["full"] }
 kube = { version = "0.98.*", features = ["runtime", "derive","client"] }
 k8s-openapi = { version = "0.24.*", features = ["latest"] }

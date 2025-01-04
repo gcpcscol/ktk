@@ -264,17 +264,6 @@ fn evaldir(conf: &config::Context) {
     }
 }
 
-fn list_clusters(conf: &config::Context) {
-    let clusters = conf.clusters.clone();
-    let mut i = 0;
-    for cl in clusters.iter() {
-        if cl.disabled == false {
-            i = i + 1;
-            println!("{i:>4} - {}", cl.name)
-        }
-    }
-}
-
 fn possible_namespaces_in_context(conf: config::Context, cluster_search: String) -> Vec<String> {
     conf.read_completion_file()
         .split('\n')
@@ -326,7 +315,7 @@ fn main() -> Result<(), io::Error> {
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
 
     if matches.get_flag("list-clusters") {
-        list_clusters(&conf);
+        conf.list_cluster();
         process::exit(0)
     }
 
