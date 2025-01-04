@@ -1,7 +1,7 @@
 //! Read ktk yaml file and load Context
 use crate::kube::{self, Cluster};
+use crate::terminal::kitty::Tabcolor;
 use clap::crate_name;
-use palette::Darken;
 use serde_yaml::Value;
 
 use std::fs;
@@ -13,7 +13,6 @@ use std::time::SystemTime;
 
 use log::{error, info};
 use owo_colors::OwoColorize;
-use palette::{color_difference::Wcag21RelativeContrast, Srgb};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Context {
@@ -26,26 +25,47 @@ pub struct Context {
     pub clusters: Vec<Cluster>,
 }
 
-pub fn select_contrasting_fg_color(hexcolor: &str, active: bool) -> String {
-    let col = csscolorparser::parse(hexcolor).unwrap_or_default();
-    if active {
-        let fg = csscolorparser::parse("#FFFFFF").unwrap();
-        let fg_active: Srgb<f32> = Srgb::new(fg.r, fg.g, fg.b).into_format();
-        let background: Srgb<f32> = Srgb::new(col.r, col.g, col.b).into_format();
-        if background.has_min_contrast_large_text(fg_active) {
-            return "#FFFFFF".to_string();
-        } else {
-            return "#000000".to_string();
-        }
-    } else {
-        let fg = csscolorparser::parse("#DDDDDD").unwrap();
-        let fg_active: Srgb<f32> = Srgb::new(fg.r, fg.g, fg.b).into_format();
-        let background: Srgb<f32> = Srgb::new(col.r, col.g, col.b).into_format();
-        if background.has_min_contrast_large_text(fg_active) {
-            return "#DDDDDD".to_string();
-        } else {
-            return "#222222".to_string();
-        }
+pub fn new_gradient(g: &str) -> colorous::Gradient {
+    match g {
+        "blues" => colorous::BLUES,
+        "bluegreen" => colorous::BLUE_GREEN,
+        "bluepurple" => colorous::BLUE_PURPLE,
+        "browngreen" => colorous::BROWN_GREEN,
+        "cividis" => colorous::CIVIDIS,
+        "cool" => colorous::COOL,
+        "cubehelix" => colorous::CUBEHELIX,
+        "greens" => colorous::GREENS,
+        "greenblue" => colorous::GREEN_BLUE,
+        "greys" => colorous::GREYS,
+        "inferno" => colorous::INFERNO,
+        "magma" => colorous::MAGMA,
+        "oranges" => colorous::ORANGES,
+        "orangered" => colorous::ORANGE_RED,
+        "pinkgreen" => colorous::PINK_GREEN,
+        "plasma" => colorous::PLASMA,
+        "purples" => colorous::PURPLES,
+        "purpleblue" => colorous::PURPLE_BLUE,
+        "purplebluegreen" => colorous::PURPLE_BLUE_GREEN,
+        "purplegreen" => colorous::PURPLE_GREEN,
+        "purpleorange" => colorous::PURPLE_ORANGE,
+        "purplered" => colorous::PURPLE_RED,
+        "rainbow" => colorous::RAINBOW,
+        "reds" => colorous::REDS,
+        "redblue" => colorous::RED_BLUE,
+        "redgrey" => colorous::RED_GREY,
+        "redpurple" => colorous::RED_PURPLE,
+        "redyellowblue" => colorous::RED_YELLOW_BLUE,
+        "redyellowgreen" => colorous::RED_YELLOW_GREEN,
+        "sinebow" => colorous::SINEBOW,
+        "spectral" => colorous::SPECTRAL,
+        "turbo" => colorous::TURBO,
+        "viridis" => colorous::VIRIDIS,
+        "warm" => colorous::WARM,
+        "yellowgreen" => colorous::YELLOW_GREEN,
+        "yellowgreenblue" => colorous::YELLOW_GREEN_BLUE,
+        "yelloworangebrown" => colorous::YELLOW_ORANGE_BROWN,
+        "yelloworangered" => colorous::YELLOW_ORANGE_RED,
+        _ => colorous::TURBO,
     }
 }
 
@@ -97,10 +117,28 @@ impl Context {
             .as_u64()
             .unwrap_or(3600);
         let tabprefix = value_string(&cfg["global"]["tabprefix"], "");
+        let gradient = new_gradient(
+            value_string(&cfg["global"]["gradient"]["name"], "")
+                .to_lowercase()
+                .replace("_", "")
+                .as_str(),
+        );
+        let reverse = cfg["global"]["gradient"]["reverse"]
+            .as_bool()
+            .unwrap_or(true);
+        let darken = cfg["global"]["gradient"]["darken"]
+            .as_bool()
+            .unwrap_or(false);
+
         let mut i = 0;
         let mut clusters: Vec<Cluster> = Vec::new();
         let value_or_empty =
             |v: &serde_yaml::Value| v.as_str().map_or("".to_string(), |s| s.to_string());
+
+        let mut count_cluster = 0;
+        while cfg["clusters"][count_cluster].is_mapping() {
+            count_cluster += 1;
+        }
 
         while cfg["clusters"][i].is_mapping() {
             let name = value_or_empty(&cfg["clusters"][i]["name"]);
@@ -115,16 +153,12 @@ impl Context {
                 value_string(&cfg["clusters"][i]["workdir"]["subdir"], "")
             );
             let prefixns = value_string(&cfg["clusters"][i]["workdir"]["prefixns"], "");
-            let active_bg = value_string(&cfg["clusters"][i]["kitty"]["tabactivebg"], "NONE");
-            //let inactive_bg = value_string(&cfg["clusters"][i]["kitty"]["tabinactivebg"], "NONE");
-            let bg = csscolorparser::parse(active_bg.as_str())
-                .unwrap_or_default()
-                .to_linear_rgba();
-            let inac_bg: Srgb<u8> =
-                Darken::darken(Srgb::new(bg.0, bg.1, bg.2), 0.01).into_format::<u8>();
-            let inactive_bg = format!("{:x}", inac_bg);
-            let active_fg = select_contrasting_fg_color(&active_bg, true);
-            let inactive_fg = select_contrasting_fg_color(&inactive_bg, false);
+            let mut tabcolor = Tabcolor::new();
+            if reverse {
+                tabcolor.set_tab_color(gradient, darken, count_cluster - i, count_cluster + 1);
+            } else {
+                tabcolor.set_tab_color(gradient, darken, i, count_cluster + 1);
+            }
             let disabled = cfg["clusters"][i]["disabled"].as_bool().unwrap_or(false);
             let timeout = cfg["clusters"][i]["kubeconfig"]["timeout"]
                 .as_u64()
@@ -136,12 +170,7 @@ impl Context {
                 prefixns,
                 disabled,
                 timeout: timeout.try_into().unwrap_or(10),
-                tabcolor: crate::terminal::kitty::Tabcolor {
-                    active_bg,
-                    inactive_bg,
-                    active_fg,
-                    inactive_fg,
-                },
+                tabcolor,
             };
             clusters.push(cl);
             i += 1;
@@ -328,16 +357,16 @@ mod tests {
         let conf = Context::new(&path, false);
         assert_eq!(conf.kubetmp, "/run/user/1000/.kubeconfig");
         assert_eq!(conf.maxage, 86400);
-        assert_eq!(conf.clusters[0].name, "prod");
-        assert_eq!(conf.clusters[1].workdir, "~/deploy/deploy_env_dev");
-        assert_eq!(conf.clusters[1].tabcolor.active_bg, "#7dcfff");
+        assert_eq!(conf.clusters[0].name, "other");
+        assert_eq!(conf.clusters[1].workdir, "~/deploy/deploy_env_prod");
+        assert_eq!(conf.clusters[1].tabcolor.active_bg, "#ff821d");
     }
 
     #[test]
     fn test_clusters_name() {
         let path = PathBuf::from("./conf/config.sample.yaml");
         let conf = Context::new(&path, false);
-        assert_eq!(conf.clusters_names(), vec!["prod", "dev"]);
+        assert_eq!(conf.clusters_names(), vec!["prod", "dev", "test"]);
     }
 
     #[test]
@@ -356,10 +385,10 @@ mod tests {
                 disabled: false,
                 timeout: 5,
                 tabcolor: Tabcolor {
-                    active_bg: "#db4b4b".to_string(),
+                    active_bg: "#ff821d".to_string(),
                     inactive_bg: "NONE".to_string(),
-                    active_fg: "NONE".to_string(),
-                    inactive_fg: "#8e3533".to_string()
+                    active_fg: "#000000".to_string(),
+                    inactive_fg: "#ff821d".to_string()
                 }
             })
         );

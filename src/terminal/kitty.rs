@@ -1,4 +1,5 @@
 use log::debug;
+use palette::{color_difference::Wcag21RelativeContrast, Darken, Srgb};
 use std::env;
 use std::fmt;
 use std::process::{ChildStdout, Command, Stdio};
@@ -36,6 +37,45 @@ impl Tabcolor {
             inactive_bg: "NONE".to_string(),
             active_fg: "NONE".to_string(),
             inactive_fg: "NONE".to_string(),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn set_tab_color(
+        &mut self,
+        gradient: colorous::Gradient,
+        darken: bool,
+        index: usize,
+        count: usize,
+    ) {
+        let col = gradient.eval_rational(index, count);
+        self.active_bg = format!("#{:x}", col).to_string();
+        let background: Srgb<f32> = Srgb::new(col.r, col.g, col.b).into_format();
+        let foreground: Srgb<f32> = Srgb::new(1.0, 1.0, 1.0).into_format();
+        if background.has_min_contrast_text(foreground) {
+            self.active_fg = "#FFFFFF".to_string()
+        } else {
+            self.active_fg = "#000000".to_string()
+        }
+        if !darken {
+            self.inactive_fg = format!("#{:x}", col).to_string();
+            self.inactive_bg = "NONE".to_string();
+            return;
+        }
+        let inactive_bg_u8: Srgb<u8> =
+            Darken::darken(Srgb::new(col.r, col.g, col.b).into_format(), 0.3).into_format::<u8>();
+        self.inactive_bg = format!("#{:x}", inactive_bg_u8);
+        let background: Srgb<f32> = Srgb::new(
+            inactive_bg_u8.red,
+            inactive_bg_u8.green,
+            inactive_bg_u8.blue,
+        )
+        .into_format();
+        let foreground: Srgb<f32> = Srgb::new(1.0, 1.0, 1.0).into_format();
+        if background.has_min_contrast_text(foreground) {
+            self.inactive_fg = "#DDDDDD".to_string()
+        } else {
+            self.inactive_fg = "#222222".to_string()
         }
     }
 }

@@ -6,6 +6,9 @@ global:
     file: "~/.kube/tkcompleted"
     maxage: 86400
   tabprefix: "☸"
+  gradient:
+    name: turbo
+    reverse: true
 
 
 .workdir: &workdir
@@ -20,10 +23,17 @@ global:
   connect-timeout-msec: 800
 
 clusters:
+  - name: other
+    disabled: true
+    workdir:
+      <<: *workdir
+      subdir: deploy_env_other
+      prefixns: ""
+    kubeconfig:
+      <<: *kubeconfig
+      file: other
+
   - name: prod
-    kitty:
-      tabactivebg: "#db4b4b"
-      tabinactivefg: "#8e3533"
     workdir:
       <<: *workdir
       subdir: "deploy_env_prod"
@@ -33,9 +43,6 @@ clusters:
       timeout: 5
 
   - name: dev
-    kitty:
-      tabactivebg: "#7dcfff"
-      tabinactivefg: "#5485a2"
     workdir:
       <<: *workdir
       subdir: "deploy_env_dev"
@@ -44,10 +51,6 @@ clusters:
       file: "dev"
 
   - name: test
-    disabled: true
-    kitty:
-      tabactivebg: "#ff9e64"
-      tabinactivefg: "#a36743"
     workdir:
       <<: *workdir
       subdir: deploy_env_test
