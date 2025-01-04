@@ -138,20 +138,32 @@ impl Context {
         vec
     }
 
+    #[allow(dead_code)]
     pub fn cluster_named(&self, search_name: &str) -> Option<&Cluster> {
         // returns the cluster with name search_name
         self.clusters.iter().find(|&c| c.name == search_name)
     }
 
     #[allow(dead_code)]
-    pub fn list_cluster(&self) {
-        // displays the list of clusters with their colour
+    pub fn nb_clusters(&self) -> (u32, u32) {
+        let mut active = 0;
+        let mut inactive = 0;
+        for cl in self.clusters.iter() {
+            if cl.disabled {
+                inactive += 1;
+            } else {
+                active += 1
+            }
+        }
+        return (active, inactive);
+    }
+
+    #[allow(dead_code)]
+    pub fn list_clusters_by_state(&self, active: bool) {
         let clusters = self.clusters.clone();
         let mut i = 0;
-        let mut listactive = Vec::new();
-        let mut listinactive = Vec::new();
         for cl in clusters.iter() {
-            if !cl.disabled {
+            if cl.disabled != active {
                 i += 1;
                 let act_bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
                     .unwrap_or_default()
@@ -159,43 +171,28 @@ impl Context {
                 let act_fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
                     .unwrap_or_default()
                     .to_linear_rgba_u8();
-                listactive.push(format!(
+                println!(
                     "{i:>4} - {}",
                     cl.name
                         .on_truecolor(act_bg.0, act_bg.1, act_bg.2)
                         .truecolor(act_fg.0, act_fg.1, act_fg.2)
-                ))
+                )
             }
         }
-        if !listactive.is_empty() {
+    }
+
+    #[allow(dead_code)]
+    pub fn list_clusters(&self) {
+        // displays the list of clusters with their colour
+        let (nbactive, nbinactive) = self.nb_clusters();
+        if nbactive > 0 {
             println!("List of active clusters:");
-            for l in listactive.iter() {
-                println!("{l}")
-            }
+            self.list_clusters_by_state(true);
         }
-        i = 0;
-        for cl in clusters.iter() {
-            if cl.disabled {
-                i += 1;
-                let act_bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
-                    .unwrap_or_default()
-                    .to_linear_rgba_u8();
-                let act_fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
-                    .unwrap_or_default()
-                    .to_linear_rgba_u8();
-                listinactive.push(format!(
-                    "{i:>4} - {}",
-                    cl.name
-                        .on_truecolor(act_bg.0, act_bg.1, act_bg.2)
-                        .truecolor(act_fg.0, act_fg.1, act_fg.2)
-                ))
-            }
-        }
-        if !listinactive.is_empty() {
+
+        if nbinactive > 0 {
             println!("List of inactive clusters:");
-            for l in listinactive.iter() {
-                println!("{l}")
-            }
+            self.list_clusters_by_state(false);
         }
     }
 

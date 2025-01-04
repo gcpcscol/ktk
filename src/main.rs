@@ -315,7 +315,7 @@ fn main() -> Result<(), io::Error> {
     let conf = config::Context::new(config_path, matches.get_flag("wait"));
 
     if matches.get_flag("list-clusters") {
-        conf.list_cluster();
+        conf.list_clusters();
         process::exit(0)
     }
 
