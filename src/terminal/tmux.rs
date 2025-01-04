@@ -83,7 +83,7 @@ impl Context {
                     return None;
                 }
                 debug!(" id_win => {v}");
-                return Some(String::from(v.trim_end()));
+                Some(String::from(v.trim_end()))
             }
             Err(_) => None,
         }
