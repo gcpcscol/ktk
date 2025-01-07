@@ -7,6 +7,7 @@
 mod config;
 mod kube;
 mod kubeconfig;
+mod ohmyposh;
 mod terminal;
 
 use clap::{
@@ -69,7 +70,7 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
         .arg(
             Arg::new("namespace")
                 .help("Namespace to operate on")
-                .required_unless_present_any(["force","evaldir","cluster","completion","list-clusters-colors","list-clusters-names"])
+                .required_unless_present_any(["force","evaldir","cluster","completion","list-clusters-colors","list-clusters-names","oh-my-posh-json"])
                 .value_hint(ValueHint::Other)
         )
         .arg(
@@ -126,7 +127,7 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
                 .long("list-clusters-colors")
                 .action(clap::ArgAction::SetTrue)
                 .help("List kube clusters with tabs colors in config file")
-                .conflicts_with_all(["list-clusters-names"]),
+                .conflicts_with_all(["list-clusters-names","oh-my-posh-json"]),
         )
         .arg(
             Arg::new("list-clusters-names")
@@ -134,6 +135,14 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
                 .long("list-clusters-names")
                 .action(clap::ArgAction::SetTrue)
                 .help("List kube clusters names in config file")
+                .conflicts_with_all(["list-clusters-colors","oh-my-posh-json"]),
+        )
+        .arg(
+            Arg::new("oh-my-posh-json")
+                .short('O')
+                .long("oh-my-posh-json")
+                .action(clap::ArgAction::SetTrue)
+                .help("Update oh-my-posh json config file")
         )
         .arg(
             Arg::new("subfilter")
@@ -329,6 +338,11 @@ fn main() -> Result<(), io::Error> {
 
     if matches.get_flag("list-clusters-colors") {
         conf.list_clusters_colors();
+        process::exit(0)
+    }
+
+    if matches.get_flag("oh-my-posh-json") {
+        conf.update_ohmyposh_config();
         process::exit(0)
     }
 

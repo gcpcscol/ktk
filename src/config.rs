@@ -1,5 +1,6 @@
 //! Read ktk yaml file and load Context
 use crate::kube::{self, Cluster};
+use crate::ohmyposh::Config as ThemeConfig;
 use crate::terminal::kitty::Tabcolor;
 use clap::crate_name;
 use serde_yaml::Value;
@@ -23,6 +24,7 @@ pub struct Context {
     pub maxage: u64,
     pub tabprefix: String,
     pub clusters: Vec<Cluster>,
+    pub ohmyposhfile: String,
 }
 
 pub fn new_gradient(g: &str) -> colorous::Gradient {
@@ -130,6 +132,8 @@ impl Context {
             .as_bool()
             .unwrap_or(false);
 
+        let ohmyposhfile = value_string(&cfg["global"]["oh-my-posh"]["file"], "");
+
         let mut i = 0;
         let mut clusters: Vec<Cluster> = Vec::new();
         let value_or_empty =
@@ -183,6 +187,7 @@ impl Context {
             maxage,
             tabprefix,
             clusters,
+            ohmyposhfile,
         }
     }
 
@@ -215,7 +220,7 @@ impl Context {
                 active += 1
             }
         }
-        return (active, inactive);
+        (active, inactive)
     }
 
     #[allow(dead_code)]
@@ -227,24 +232,24 @@ impl Context {
                 i += 1;
                 let bg = csscolorparser::parse(cl.tabcolor.active_bg.as_str())
                     .unwrap_or_default()
-                    .to_linear_rgba_u8();
+                    .to_rgba8();
                 let fg = csscolorparser::parse(cl.tabcolor.active_fg.as_str())
                     .unwrap_or_default()
-                    .to_linear_rgba_u8();
+                    .to_rgba8();
                 let inbg = csscolorparser::parse(cl.tabcolor.inactive_bg.as_str())
                     .unwrap_or_default()
-                    .to_linear_rgba_u8();
+                    .to_rgba8();
                 let infg = csscolorparser::parse(cl.tabcolor.inactive_fg.as_str())
                     .unwrap_or_default()
-                    .to_linear_rgba_u8();
+                    .to_rgba8();
                 println!(
                     "{i:>4} - {} -> inactive tab: {}",
                     cl.name
-                        .on_truecolor(bg.0, bg.1, bg.2)
-                        .truecolor(fg.0, fg.1, fg.2),
+                        .on_truecolor(bg[0], bg[1], bg[2])
+                        .truecolor(fg[0], fg[1], fg[2]),
                     cl.name
-                        .on_truecolor(inbg.0, inbg.1, inbg.2)
-                        .truecolor(infg.0, infg.1, infg.2)
+                        .on_truecolor(inbg[0], inbg[1], inbg[2])
+                        .truecolor(infg[0], infg[1], infg[2])
                         .italic()
                 )
             }
@@ -276,6 +281,35 @@ impl Context {
             println!("List of inactive clusters:");
             self.list_clusters_by_state(false);
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn update_ohmyposh_config(&self) {
+        if self.ohmyposhfile.is_empty() {
+            error!("Oh-my-posh config missing");
+            return;
+        }
+        if !Path::new(&self.ohmyposhfile).exists() {
+            error!("Oh-my-posh config file missing: {}", self.ohmyposhfile);
+            process::exit(53)
+        }
+        let mut conf = ThemeConfig::read_from_file(self.ohmyposhfile.clone()).unwrap();
+        let mut bg_template = Vec::new();
+        let mut fg_template = Vec::new();
+        for cl in self.clusters.clone() {
+            bg_template.push(format!(
+                "{{{{if eq \"{}\" .Cluster}}}}{}{{{{end}}}}",
+                cl.name, cl.tabcolor.active_bg
+            ));
+            fg_template.push(format!(
+                "{{{{if eq \"{}\" .Cluster}}}}{}{{{{end}}}}",
+                cl.name, cl.tabcolor.active_fg
+            ));
+        }
+        conf.update_kubectl_background_template(bg_template);
+        conf.update_kubectl_foreground_template(fg_template);
+        conf.write_to_file(self.ohmyposhfile.clone());
+        println!("Update Oh-My-Posh config file : {}", self.ohmyposhfile);
     }
 
     #[allow(dead_code)]

@@ -63,7 +63,7 @@ impl Tabcolor {
             return;
         }
         let inactive_bg_u8: Srgb<u8> =
-            Darken::darken(Srgb::new(col.r, col.g, col.b).into_format(), 0.3).into_format::<u8>();
+            Darken::darken(Srgb::new(col.r, col.g, col.b).into_format(), 0.7).into_format::<u8>();
         self.inactive_bg = format!("#{:x}", inactive_bg_u8);
         let background: Srgb<f32> = Srgb::new(
             inactive_bg_u8.red,
