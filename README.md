@@ -58,18 +58,26 @@ global:
     file: "/home/user/.kube/tkcompleted"
     maxage: 43200
   tabprefix: "☸>>"
+  gradient:
+    name: Spectral
+    reverse: false
+    darken: true
+  oh-my-posh:
+    file: "/home/user/.config/oh-my-posh/theme.json"
 ```
 
--   kubetmp: folder where temporary kubeconfig files are copied.
-
--   separator: separation between namespace and cluster name in the
-    cache file and in the search.
-
--   completion→file: name of the cache file for the namespace search.
-
--   completion→maxage: Duration of cache validity in seconds.
-
--   tabprefix: prefix in the tab name, e.g. `☸>>kube-system::prod`.
+- kubetmp: folder where temporary kubeconfig files are copied.
+- separator: separation between namespace and cluster name in the
+  cache file and in the search.
+- completion:
+  - file: name of the cache file for the namespace search.
+  - maxage: Duration of cache validity in seconds.
+- tabprefix: prefix in the tab name, e.g. `☸>>kube-system::prod`.
+- gradient:
+  - name: choose your gradient colors from [Colorous](https://crates.io/crates/colorous).
+  - reverse: reverse color gradient.
+  - darken: if true, darkens the color of the inactive tab, otherwise inverts the color.- oh-my-posh: (optional)
+  - file: oh-my-posh configuration file path
 
 ### Common settings for clusters
 
@@ -108,15 +116,8 @@ possible to use the anchor system of the yaml file.
 Here are the specific settings for each cluster.
 
 ```yaml
-.color-prod: &color-prod
-  tabactivebg: "#AE2012"
-  tabactivefg: "#ffffff"
-  tabinactivefg: "#AE2012"
-
 clusters:
   - name: prod
-    kitty:
-      <<: *color-prod
     workdir:
       <<: *workdir
       subdir: "prod_conf"
@@ -151,16 +152,18 @@ else
 fi
 source <(ktk completion zsh)
 ```
-
 Here I take the opportunity to load the automatic completion tools only
 if necessary.
+
+```bash
+[ ~/.config/ktk.yaml -nt ~/.config/oh-my-posh/theme.json ] && ktk -O
+```
+Since ktk v0.20.0, automatic update of oh-my-posh theme with ktk.
 
 # Usage
 
 ```
-# ktk -h
-
-ktk 0.19.3
+ktk 0.20.0
 Kitty Tab for Kubeconfig
 
 Usage: ktk [OPTIONS] [namespace::cluster]
@@ -169,10 +172,13 @@ Arguments:
   [namespace]  Namespace to operate on
 
 Options:
-  -c, --config <FILE>            Sets a custom config file [default: /home/user/.config/ktk.yaml]
+  -c, --config <FILE>            Sets a custom config file [default: /home/gauthier/.config/ktk.yaml]
   -f, --force                    Force reconstruct cache of namespace
   -n, --noscan                   Do not reconstruct cache of namespace
   -C, --cluster                  Search only in current cluster like kubens (alias kubens="ktk -t -C")
+  -l, --list-clusters-colors     List kube clusters with tabs colors in config file
+  -L, --list-clusters-names      List kube clusters names in config file
+  -O, --oh-my-posh-json          Update oh-my-posh json config file
   -s, --subfilter <subfilter>    Pre-filter on a subset of value with a regexp.
   -w, --wait                     disable timeout for namespaces search
   -t, --tab                      Change namespace without change tab (like kubens)
@@ -224,25 +230,44 @@ of ktk differs between these 3 tools.
 
 ## Tmux
 
-Tmux does not support tab coloring.
-Configuring the color of the tabs in the config file has no effect.
+Tmux does not support multiple tab coloring.
+Configuring the gradient color of the tabs in the config file has no effect.
 
 ## Wezterm
 
-With wezterm, it is not necessary to configure the colors in the config file.
-We will automatically define the color of the tabs in the wezterm configuration
-like this.
+Unlike kitty, it's not possible with wezterm to pass tab colors as parameters, but it is possible to read the ktk configuration file directly and create the color palette to be applied to tabs based on the kubernetes context name.
 
 ```lua
-local clusters_kube = {
-  "cluster1",
-  "cluster2",
-  "cluster3",
-  "cluster4",
-  "cluster5",
-}
+local function get_cluster_ktk()
+	local clusters = {}
+	local file = io.open(wezterm.home_dir .. "/.config/ktk.yaml", "r")
+	if file == nil then
+		return
+	end
+	local content = file:read("*all")
+	file:close()
 
-local gradient_colors = wezterm.color.gradient({ preset = "Turbo" }, #clusters_kube)
+	local data = wezterm.serde.yaml_decode(content)
+	for _, v in pairs(data.clusters) do
+		table.insert(clusters, v.name)
+	end
+	return clusters
+end
+
+local function get_gradient_ktk()
+	local file = io.open(wezterm.home_dir .. "/.config/ktk.yaml", "r")
+	if file == nil then
+		return
+	end
+	local content = file:read("*all")
+	file:close()
+
+	local data = wezterm.serde.yaml_decode(content)
+	return data.global.gradient.name
+end
+
+local clusters_kube = get_cluster_ktk()
+local gradient_colors = wezterm.color.gradient({ preset = get_gradient_ktk() }, #clusters_kube)
 ```
 
 The result is a color chart of the size of the number of clusters.

@@ -9,6 +9,7 @@ global:
   gradient:
     name: turbo
     reverse: true
+    darken: false
   oh-my-posh:
     file: "conf/theme.json"
 
