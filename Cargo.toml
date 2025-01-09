@@ -7,7 +7,7 @@ repository = "https://github.com/gcpcscol/ktk"
 edition = "2021"
 description = "Kitty Tab for Kubeconfig"
 license = "MIT"
-readme = "README.adoc"
+readme = "README.md"
 categories = ["command-line-utilities","caching"]
 keywords = ["kubernetes", "cli", "kitty", "wezterm", "tmux"]
 
