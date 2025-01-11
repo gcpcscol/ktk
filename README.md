@@ -235,6 +235,8 @@ Configuring the gradient color of the tabs in the config file has no effect.
 
 ## Wezterm
 
+### Themes
+
 Unlike kitty, it's not possible with wezterm to pass tab colors as parameters, but it is possible to read the ktk configuration file directly and create the color palette to be applied to tabs based on the kubernetes context name.
 
 ```lua
@@ -271,3 +273,7 @@ local gradient_colors = wezterm.color.gradient({ preset = get_gradient_ktk() }, 
 ```
 
 The result is a color chart of the size of the number of clusters.
+
+### Workspaces
+
+ktk manages wezterm workspaces as independent environments. It is possible to open a tab with an identical kubernetes context (same namespace and same cluster) in 2 different workspaces.

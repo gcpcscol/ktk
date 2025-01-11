@@ -149,14 +149,15 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
                 .short('s')
                 .long("subfilter")
                 .action(clap::ArgAction::Set)
-                .help("Pre-filter on a subset of value with a regexp.")
+                .help("Pre-filter on a subset of value with a regexp")
+                .long_help("Defines a pre-filter on a subset of values using a regular expression.\nThe KTKSUBFILTER environment variable can be set to define this pre-filter.")
         )
         .arg(
             Arg::new("wait")
                 .short('w')
                 .long("wait")
                 .action(clap::ArgAction::SetTrue)
-                .help("disable timeout for namespaces search")
+                .help("Disable timeout for namespaces search")
                 .long_help("Allows to override the timeout value of the config file in order to have temporarily a longer time for the cluster to respond.")
                 .conflicts_with_all(["evaldir", "noscan","completion"]),
         )
