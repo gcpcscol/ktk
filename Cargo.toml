@@ -20,20 +20,20 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "4.*", features = ["cargo", "string"] }
 config = "0.15.*"
-dirs = "5.0.*"
+dirs = "6.0.*"
 serde = { version = "1.0.*", features = ["derive"] }
 serde_json = "1.0.*"
 serde_yaml = "0.9.*"
 time = "0.3.*"
-skim = "0.15.*"
+skim = "0.16.*"
 simplelog = { version = "0.12.*", features = ["paris"] }
 log = "0.4.*"
 color-print = "0.3.*"
 owo-colors = "4"
-csscolorparser = "0.6.2"
+csscolorparser = "0.7.0"
 palette = "0.7.6"
 colorous = "1.*"
-tokio = { version = "1.37.*", features = ["full"] }
+tokio = { version = "1.43.*", features = ["full"] }
 kube = { version = "0.98.*", features = ["runtime", "derive","client"] }
 k8s-openapi = { version = "0.24.*", features = ["latest"] }
 regex = "1.11.*"
