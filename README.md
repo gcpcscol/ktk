@@ -2,10 +2,10 @@
 <img src="./images/kitty-tab-kube.svg" alt="ktk logo" />
 </figure>
 
-`ktk` is a command line tool to use multiple kubeconfig files
+`ktk` is a command line tool to use many kubeconfig files
 simultaneously in different terminal tabs.
 
-Originally written for kitty, `ktk` can also be used to manage tmux and wezterm tabs.
+Originally written for `kitty`, `ktk` can also be used to manage `tmux` and `wezterm` tabs.
 
 It is possible to customize the name and the color of the tabs for each
 cluster, to search quickly in thousands of namespaces, with a cache
@@ -66,18 +66,18 @@ global:
     file: "/home/user/.config/oh-my-posh/theme.json"
 ```
 
-- kubetmp: folder where temporary kubeconfig files are copied.
-- separator: separation between namespace and cluster name in the
+- `kubetmp`: folder where temporary kubeconfig files are copied.
+- `separator`: separation between namespace and cluster name in the
   cache file and in the search.
-- completion:
-  - file: name of the cache file for the namespace search.
-  - maxage: Duration of cache validity in seconds.
-- tabprefix: prefix in the tab name, e.g. `☸>>kube-system::prod`.
-- gradient:
-  - name: choose your gradient colors from [Colorous](https://crates.io/crates/colorous).
-  - reverse: reverse color gradient.
-  - darken: if true, darkens the color of the inactive tab, otherwise inverts the color.- oh-my-posh: (optional)
-  - file: oh-my-posh configuration file path
+- `completion`:
+  - `file`: name of the cache file for the namespace search.
+  - `maxage`: Duration of cache validity in seconds.
+- `tabprefix`: prefix in the tab name, e.g. `☸>>kube-system::prod`.
+- `gradient`:
+  - `name`: choose your gradient colors from [Colorous](https://crates.io/crates/colorous).
+  - `reverse`: reverse color gradient.
+  - `darken`: if true, darkens the color of the inactive tab, otherwise inverts the color.- oh-my-posh: (optional).
+  - `file`: oh-my-posh configuration file path.
 
 ### Common settings for clusters
 
@@ -95,21 +95,16 @@ possible to use the anchor system of the yaml file.
   file: "default"
 ```
 
--   workdir: working folder when working in a namespace.
-
--   path: main path
-
--   subdir: namespace specific path
-
--   prefix: prefix to remove from the namespace name. Example: `prod-`
+- `workdir`: working folder when working in a namespace.
+- `path`: main path.
+- `subdir`: namespace specific path.
+- `prefix`: prefix to remove from the namespace name. Example: `prod-`
     for a namespace like prod-my-app. So the path will be
     `/home/user/kubernetes/deploy/my-app` and not
     `/home/user/kubernetes/deploy/prod-my-app`.
-
--   kubeconfig→path: folder containing the kubeconfig file of the
-    cluster
-
--   kubeconfig→file: name of the kubeconfig file.
+- `kubeconfig`:
+  - `path`: folder containing the kubeconfig file of the cluster.
+  - `file`: name of the kubeconfig file.
 
 ### Clusters section
 
@@ -125,14 +120,6 @@ clusters:
       <<: *kubeconfig
       file: "prod"
 ```
-
--   kitty→tabactivebg: background color of the active tab for the
-    cluster
-
--   kitty→tabactivefg: foreground color of the active tab for the
-    cluster
-
--   kitty→tabinactivefg: text color of the inactive tab for the cluster
 
 ## Changing bashrc or zshrc
 
@@ -158,7 +145,7 @@ if necessary.
 ```bash
 [ ~/.config/ktk.yaml -nt ~/.config/oh-my-posh/theme.json ] && ktk -O
 ```
-Since ktk v0.20.0, automatic update of oh-my-posh theme with ktk.
+Since `ktk` v0.20.0, automatic update of oh-my-posh theme with `ktk`.
 
 # Usage
 
@@ -225,8 +212,8 @@ reach.
 
 # Special features
 
-Due of the difference between kitty, wezterm and tmux, the behaviour
-of ktk differs between these 3 tools.
+Due of the difference between `kitty`, `wezterm` and `tmux`, the behaviour
+of `ktk` differs between these 3 tools.
 
 ## Tmux
 
@@ -237,7 +224,7 @@ Configuring the gradient color of the tabs in the config file has no effect.
 
 ### Themes
 
-Unlike kitty, it's not possible with wezterm to pass tab colors as parameters, but it is possible to read the ktk configuration file directly and create the color palette to be applied to tabs based on the kubernetes context name.
+Unlike `kitty`, it's not possible with `wezterm` to pass tab colors as parameters, but it is possible to read the `ktk` configuration file directly and create the color palette to be applied to tabs based on the Kubernetes context name.
 
 ```lua
 local function get_cluster_ktk()
@@ -276,4 +263,4 @@ The result is a color chart of the size of the number of clusters.
 
 ### Workspaces
 
-ktk manages wezterm workspaces as independent environments. It is possible to open a tab with an identical kubernetes context (same namespace and same cluster) in 2 different workspaces.
+`ktk` manages `wezterm` workspaces as independent environments. It is possible to open a tab with an identical Kubernetes context (same namespace and same cluster) in 2 different workspaces.
