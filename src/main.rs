@@ -43,6 +43,8 @@ fn logfile() -> String {
 }
 
 fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
+    let git_hash = env!("GIT_HASH");
+    let build_timestamp = env!("BUILD_TIMESTAMP");
     let after_help: &'static str = color_print::cstr!(
         r#"<bold><green>Examples:</green></bold>
   <dim>$</dim> <bold>ktk kube-system::production</bold>
@@ -195,7 +197,17 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
                .value_parser(clap::value_parser!(Shell)),
         )
         .version(crate_version!())
-        .long_version(format!("{}\n{}", crate_version!(), crate_authors!()))
+        .long_version(
+            format!("{}\n{:<12} :  {}\n{:<12} :  {}\n{:<12} :  {}",
+                crate_version!(),
+                "Authors",
+                crate_authors!(),
+                "Time",
+                build_timestamp,
+                "ShortCommit",
+                git_hash,
+            )
+        )
         .author(crate_authors!())
         .after_help(after_help)
         .override_usage(override_usage)
