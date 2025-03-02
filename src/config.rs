@@ -395,8 +395,8 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use super::{Cluster, Context};
-    use crate::terminal::kitty::Tabcolor;
     use crate::PathBuf;
+    use crate::terminal::kitty::Tabcolor;
     #[test]
     fn test_new() {
         let path = PathBuf::from("./conf/config.sample.yaml");

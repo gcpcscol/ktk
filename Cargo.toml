@@ -1,10 +1,10 @@
 [package]
 name = "ktk"
-version = "0.20.1"
+version = "0.21.0"
 authors = ["Gauthier C. <gc@pc-scol.fr>"]
 homepage = "https://framagit.org/gauthier/ktk"
 repository = "https://github.com/gcpcscol/ktk"
-edition = "2021"
+edition = "2024"
 description = "Kitty Tab for Kubeconfig"
 license = "MIT"
 readme = "README.md"

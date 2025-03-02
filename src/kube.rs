@@ -1,8 +1,8 @@
 use k8s_openapi::api::core::v1::Namespace;
 use kube::{
+    Client, Config,
     api::{Api, ListParams},
     config::{KubeConfigOptions, Kubeconfig},
-    Client, Config,
 };
 use log::{info, warn};
 use skim::prelude::*;

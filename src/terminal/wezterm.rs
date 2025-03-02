@@ -312,8 +312,8 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use super::Context;
-    use crate::io::*;
     use crate::PathBuf;
+    use crate::io::*;
     use std::fs::File;
 
     fn new_from_file() -> Context {

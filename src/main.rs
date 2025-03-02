@@ -11,9 +11,9 @@ mod ohmyposh;
 mod terminal;
 
 use clap::{
-    command, crate_authors, crate_name, crate_version, value_parser, Arg, ArgAction, ValueHint,
+    Arg, ArgAction, ValueHint, command, crate_authors, crate_name, crate_version, value_parser,
 };
-use clap_complete::aot::{generate, Generator, Shell};
+use clap_complete::aot::{Generator, Shell, generate};
 use regex::bytes::Regex;
 use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
@@ -213,8 +213,8 @@ fn clap_command(pns: Vec<String>, pnsinc: Vec<String>) -> clap::Command {
         .override_usage(override_usage)
 }
 
-fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
-    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+fn print_completions<G: Generator>(g: G, cmd: &mut clap::Command) {
+    generate(g, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
 fn configlog(activedebug: bool) {

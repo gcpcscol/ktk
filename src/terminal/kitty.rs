@@ -1,5 +1,5 @@
 use log::debug;
-use palette::{color_difference::Wcag21RelativeContrast, Darken, Srgb};
+use palette::{Darken, Srgb, color_difference::Wcag21RelativeContrast};
 use std::env;
 use std::fmt;
 use std::process::{ChildStdout, Command, Stdio};
@@ -387,8 +387,8 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use super::{Context, IdPath};
-    use crate::io::*;
     use crate::PathBuf;
+    use crate::io::*;
     use std::fs::File;
 
     fn new_from_file() -> Context {
