@@ -491,7 +491,7 @@ fn main() -> Result<(), io::Error> {
                 process::exit(6)
             }
         };
-        debug!("change kube context => {}", namespace.to_string());
+        debug!("change kube context => {}", namespace);
         kcf.change_context(namespace.to_string());
         match term.id_of_tab_name(&tab_name) {
             Some(tab_id) => {
