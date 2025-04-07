@@ -47,7 +47,7 @@ pub fn detect() -> Box<dyn Terminal> {
             })
         }
         _ => {
-            if env::var("TERMINAL").unwrap_or(other) == "kitty" {
+            if env::var("TERM").unwrap_or(other) == "xterm-kitty" {
                 debug!("Kitty terminal");
                 Box::new(Kitty {
                     context: kitty::Context::new(),
