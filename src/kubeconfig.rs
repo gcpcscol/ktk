@@ -16,6 +16,9 @@ pub struct Kubeconfig {
     #[serde(rename = "clusters")]
     clusters: Vec<ClusterElement>,
 
+    #[serde(rename = "preferences")]
+    preferences: Preferences,
+
     #[serde(rename = "users")]
     users: Vec<UserElement>,
 
@@ -95,6 +98,30 @@ pub struct UserUser {
     #[serde(rename = "client-key-data")]
     #[serde(skip_serializing_if = "String::is_empty", default)]
     client_key_data: String,
+
+    #[serde(rename = "exec")]
+    exec: Option<Exec>,
+}
+
+#[derive(Default, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Exec {
+    #[serde(rename = "apiVersion")]
+    api_version: String,
+
+    #[serde(rename = "args")]
+    args: Vec<String>,
+
+    #[serde(rename = "command")]
+    command: String,
+
+    #[serde(rename = "env")]
+    env: Vec<Option<serde_json::Value>>,
+
+    #[serde(rename = "installHint")]
+    install_hint: String,
+
+    #[serde(rename = "provideClusterInfo")]
+    provide_cluster_info: bool,
 }
 
 impl Kubeconfig {
