@@ -17,7 +17,7 @@ pub struct Kubeconfig {
     clusters: Vec<ClusterElement>,
 
     #[serde(rename = "preferences")]
-    preferences: Preferences,
+    preferences: Option<Preferences>,
 
     #[serde(rename = "users")]
     users: Vec<UserElement>,
