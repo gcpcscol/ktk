@@ -1,6 +1,6 @@
 [package]
 name = "ktk"
-version = "0.21.1"
+version = "0.21.2"
 authors = ["Gauthier C. <gc@pc-scol.fr>"]
 homepage = "https://framagit.org/gauthier/ktk"
 repository = "https://github.com/gcpcscol/ktk"
@@ -26,7 +26,7 @@ serde = { version = "1.0.*", features = ["derive"] }
 serde_json = "1.0.*"
 serde_yaml = "0.9.*"
 time = "0.3.*"
-skim = "0.17.*"
+skim = "0.20.*"
 simplelog = { version = "0.12.*", features = ["paris"] }
 log = "0.4.*"
 color-print = "0.3.*"
@@ -34,9 +34,9 @@ owo-colors = "4"
 csscolorparser = "0.7.0"
 palette = "0.7.6"
 colorous = "1.*"
-tokio = { version = "1.45.*", features = ["full"] }
-kube = { version = "0.99.*", features = ["runtime", "derive","client","oidc"] }
-k8s-openapi = { version = "0.24.*", features = ["latest"] }
+tokio = { version = "1.47.*", features = ["full"] }
+kube = { version = "2.*", features = ["runtime", "derive","client","oidc"] }
+k8s-openapi = { version = "0.26.*", features = ["latest"] }
 regex = "1.11.*"
 clap_complete = "4.5.*"
 serde_with_macros = "3.12.0"
