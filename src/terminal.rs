@@ -31,6 +31,10 @@ pub trait Terminal {
     fn change_tab_color(&self, color: kitty::Tabcolor);
 }
 
+pub fn ktk_env() -> String {
+    env::var("KTKENV").unwrap_or("".to_string())
+}
+
 pub fn detect() -> Box<dyn Terminal> {
     let other = "other".to_string();
     match env::var("TERM_PROGRAM").unwrap_or(other.clone()).as_str() {
@@ -59,13 +63,14 @@ pub fn detect() -> Box<dyn Terminal> {
         }
     }
 }
+
 impl Terminal for Kitty {
     fn good_term(&self) -> bool {
         self.context.good_term()
     }
 
     fn identifier(&self) -> String {
-        format!("kitty-{}", self.context.platform_window_id())
+        format!("kitty-{}{}", ktk_env(), self.context.platform_window_id())
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -79,7 +84,7 @@ impl Terminal for Kitty {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_focus_tab()
-            .map(|expr| format!("kitty-{}", expr))
+            .map(|expr| format!("kitty-{}{}", ktk_env(), expr))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
@@ -113,7 +118,7 @@ impl Terminal for Tmux {
     }
 
     fn identifier(&self) -> String {
-        format!("tmux-{}", self.context.current_session())
+        format!("tmux-{}{}", ktk_env(), self.context.current_session())
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -127,7 +132,7 @@ impl Terminal for Tmux {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_current_window()
-            .map(|expr| format!("tmux-{}", expr.trim_end()))
+            .map(|expr| format!("tmux-{}{}", ktk_env(), expr.trim_end()))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {
@@ -153,7 +158,7 @@ impl Terminal for WezTerm {
     }
 
     fn identifier(&self) -> String {
-        format!("wezterm-{}", self.context.platform_window_id())
+        format!("wezterm-{}{}", ktk_env(), self.context.platform_window_id())
     }
 
     fn id_of_focus_tab(&self) -> Option<String> {
@@ -167,7 +172,7 @@ impl Terminal for WezTerm {
     fn id_path_of_focus_tab(&self) -> Option<String> {
         self.context
             .id_path_of_focus_tab()
-            .map(|expr| format!("wezterm-{}", expr))
+            .map(|expr| format!("wezterm-{}{}", ktk_env(), expr))
     }
 
     fn focus_tab_name(&self, name: &str) -> bool {

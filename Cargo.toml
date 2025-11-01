@@ -1,6 +1,6 @@
 [package]
 name = "ktk"
-version = "0.21.2"
+version = "0.22.0"
 authors = ["Gauthier C. <gc@pc-scol.fr>"]
 homepage = "https://framagit.org/gauthier/ktk"
 repository = "https://github.com/gcpcscol/ktk"
